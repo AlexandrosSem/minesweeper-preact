@@ -1,15 +1,35 @@
 import style from './style.css';
-import Cell from '../cell';
+import { Cell } from '../cell';
 
-const Board = (props) => {
-    const tNumberOfCells = +props.numberOfCells;
+export const Board = ({ numberOfCells }) => {
+    const tNumberOfCellsPerRow = numberOfCells.rows;
+    const tNumberOfCellsPerCol = numberOfCells.cols;
+    const tNumberOfCells = tNumberOfCellsPerRow * tNumberOfCellsPerCol;
+    const lCell = Array(tNumberOfCells)
+        .fill(null)
+        .map((_, pIndex) => ({
+            number: pIndex,
+            clicked: false,
+        }));
+
+    const handleClick = (pNumber) => {
+        lCell[pNumber].clicked = true;
+    }
+
     return (
-        <>
-        {Array(tNumberOfCells)
-            .fill(null)
-            .map((_pItem, pIndex) => <Cell number={pIndex + 1}></Cell>)}
-        </>
+        <div class={style.board}>
+            {lCell
+                .map((_pItem, pIndex) => {
+                    const tArrEl = [
+                        <br />,
+                        <Cell number={pIndex} onClick={(pNumber) => handleClick(pNumber)}></Cell>,
+                    ];
+                    const tConditionToBreakLines = (pIndex !== 0) && ((pIndex % tNumberOfCellsPerCol) === 0);
+                    return (
+                        (!tConditionToBreakLines) ? tArrEl[1] : tArrEl
+                    );
+                })
+            }
+        </div>
     );
 };
-
-export default Board;

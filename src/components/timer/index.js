@@ -1,7 +1,5 @@
 import style from './style.css';
 
-const Timer = () => (
+export const Timer = () => (
 	<div></div>
 );
-
-export default Timer;

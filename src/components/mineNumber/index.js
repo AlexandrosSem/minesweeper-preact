@@ -1,7 +1,5 @@
 import style from './style.css';
 
-const MineNumber = () => (
+export const MineNumber = () => (
 	<div></div>
 );
-
-export default MineNumber;
