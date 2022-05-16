@@ -1,18 +1,14 @@
-import { useState } from 'preact/hooks'
+import { useState, useMemo } from 'preact/hooks'
 import style from './style.css';
 
 
 export const Cell = ({ number, onClick}) => {
 	const [tClicked, setClicked] = useState(false);
-
-	const fnClick = () => {
-		if (tClicked) { return; }
-		
-		setClicked(true);
-		onClick(number);
-	};
+	useMemo(() => onClick(), [tClicked]);
+	
+	const fnClick = () => setClicked(true);
 
 	return (
-		<div style={{backgroundColor: (tClicked) ? '#ffffff' : '#cccccc'}} class={style.cell} onClick={fnClick}></div>
+		<div id={number} style={{backgroundColor: (tClicked) ? '#ffffff' : '#cccccc'}} class={style.cell} onClick={fnClick}></div>
 	);
 };

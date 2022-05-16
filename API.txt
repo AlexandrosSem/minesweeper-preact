@@ -1,0 +1,18 @@
+/api/newgame
+    pass { Diff: 'easy' | 'normal' | 'hard' }
+    return { ID, Size: [X, Y] }
+/api/openblock
+    pass { ID, blockNumber }
+    return { gameStatus: ('running' | 'won' | 'lost'), blocks: [{ blockNumber, blockType }] }
+/api/flagblock
+    pass { ID, blockNumber }
+    return {  }
+/api/updatetick
+    pass { ID }
+    return { Time: Seconds passed from first click, gameStatus: ('starting' | 'running' | 'won' | 'lost') }
+/api/boardrefresh
+    pass { ID }
+    return { Size: [X, Y], Time: Seconds passed from first click, gameStatus: ('running' | 'won' | 'lost'), blocks: [{ blockNumber, blockType }] }
+/api/endgame
+    pass { ID }
+    return { gameStatus: ('lost'), blocks: [{ blockNumber, blockType }] }
