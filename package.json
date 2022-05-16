@@ -6,9 +6,11 @@
   "scripts": {
     "build": "preact build",
     "serve": "sirv build --port 8080 --cors --single",
-    "dev": "preact watch",
     "lint": "eslint src",
-    "test": "jest"
+    "test": "jest",
+    "dev:server": "nodemon --watch src/server/ src/server/index.js",
+    "dev:client": "preact watch",
+    "dev": "concurrently -k npm:dev:*"
   },
   "eslintConfig": {
     "extends": "preact",
@@ -17,6 +19,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^7.2.0",
     "enzyme": "^3.10.0",
     "enzyme-adapter-preact-pure": "^2.0.0",
     "eslint": "^6.0.1",
