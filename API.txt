@@ -1,18 +1,27 @@
-/api/newgame
-    pass { Diff: 'easy' | 'normal' | 'hard' }
-    return { ID, Size: [X, Y] }
-/api/openblock
-    pass { ID, blockNumber }
-    return { gameStatus: ('running' | 'won' | 'lost'), blocks: [{ blockNumber, blockType }] }
-/api/flagblock
-    pass { ID, blockNumber }
-    return {  }
-/api/updatetick
-    pass { ID }
-    return { Time: Seconds passed from first click, gameStatus: ('starting' | 'running' | 'won' | 'lost') }
-/api/boardrefresh
-    pass { ID }
-    return { Size: [X, Y], Time: Seconds passed from first click, gameStatus: ('running' | 'won' | 'lost'), blocks: [{ blockNumber, blockType }] }
-/api/endgame
-    pass { ID }
-    return { gameStatus: ('lost'), blocks: [{ blockNumber, blockType }] }
+/api/new-game
+    pass { diff: (difficulty) }
+    return { id, size: (size), blocks: (blocks) }
+/api/open-block
+    pass { id, blockNumber }
+    return { gameStatus: (gameStatus), blocks: (blocks), opened: (boolean) }
+/api/flag-block
+    pass { id, blockNumber }
+    return { ok: (boolean) }
+/api/update-tick
+    pass { id }
+    return { time: (timeSinceRunning), gameStatus: (gameStatus) }
+/api/board-refresh
+    pass { id }
+    return { size: (size), time: (timeSinceRunning), gameStatus: (gameStatus), blocks: (blocks) }
+/api/end-game
+    pass { id }
+    return { gameStatus: (gameStatus), blocks: (blocks) }
+
+
+Types:
+    difficulty: 'easy' | 'normal' | 'hard'
+    gameStatus: 'starting' | 'running' | 'won' | 'lost'
+    timeSinceRunning: seconds since game running status
+    blockType: 'flag' | 'bomb' | 'number' | 'blank'
+    blocks: [{ blockNumber: (0-based), blockType: blockType }]
+    size: [ columns: (1-based), rows: (1-base) ]
