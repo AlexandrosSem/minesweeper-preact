@@ -1,16 +1,15 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
 import { Board } from '../board';
+import { useState } from 'preact/hooks';
 
 export const Game = () => {
-    const numberOfCells = {
-        rows: 9,
-        cols: 9,
-    };
+    /// Fetch needed here
+    const { id, size } = {id: 1, size: [9, 9], blocks: []};
     return (
         <div class={style.game}>
             <GameHeader></GameHeader>
-            <Board numberOfCells={numberOfCells}></Board>
+            <Board size={size}></Board>
         </div>
     );
 };

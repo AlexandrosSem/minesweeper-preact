@@ -1,37 +1,25 @@
-import style from './style.css';
-import { Cell } from '../cell';
+import { CellContainer } from '../cellContainer/index.js';
 
-export const Board = ({ numberOfCells }) => {
-    const tNumberOfCellsPerRow = numberOfCells.rows;
-    const tNumberOfCellsPerCol = numberOfCells.cols;
-    const tNumberOfCells = tNumberOfCellsPerRow * tNumberOfCellsPerCol;
-    const lCell = Array.from({ length: tNumberOfCells }, (_, pIndex) => ({
+export const Board = ({ size }) => {
+    const handleClick = (pNumber) => {
+        tArrCells[pNumber].clicked = true;
+    };
+    const tSizeRow = size[0];
+    const tSizeCol = size[1];
+    const tArrCells = Array.from({ length: tSizeRow * tSizeCol }, (_, pIndex) => ({
         number: pIndex,
         clicked: false,
     }));
 
-    const handleClick = (pNumber) => {
-        lCell[pNumber].clicked = true;
-    }
-
-    const buildCell = (pIndex, pBreakLine) => {
-        return (
-            <>
-                <Cell number={pIndex} onClick={() => handleClick(pIndex)}></Cell>
-                {pBreakLine && <br />}
-            </>
-        );
-    };
+    const tArrCellContainer = Array.from({ length: tSizeRow }, (_, pIndex) => {
+        const tStartIndex = (pIndex * tSizeCol);
+        const tEndIndex = tStartIndex + tSizeCol;
+        return <CellContainer key={pIndex} number={pIndex} onClick={(pNumber) => handleClick(pNumber)} cellsInfo={tArrCells.slice(tStartIndex, tEndIndex)}></CellContainer>;
+    });
 
     return (
-        <div class={style.board}>
-            {lCell
-                .map((_, pIndex, pArr) => {
-                    const tNumber = pIndex + 1;
-                    const tBreakLine = (tNumber !== pArr.length) && ((tNumber % tNumberOfCellsPerCol) === 0);
-                    return buildCell(pIndex, tBreakLine);
-                })
-            }
+        <div>
+            {tArrCellContainer}
         </div>
     );
 };

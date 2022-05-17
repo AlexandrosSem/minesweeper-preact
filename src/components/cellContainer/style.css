@@ -1,0 +1,16 @@
+.cellContainer {
+    height: 20px;
+}
+
+.cellContainer .cell {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    border-width: 0 0 1px 1px;
+    border-style: solid;
+    border-color: #000000;
+}
+
+.cellContainer .cell:last-child {
+    border-right-width: 1px;
+}

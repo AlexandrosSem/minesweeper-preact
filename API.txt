@@ -1,5 +1,5 @@
 /api/new-game
-    pass { diff: (difficulty) }
+    pass { difficulty: (difficulty) }
     return { id, size: (size), blocks: (blocks) }
 /api/open-block
     pass { id, blockNumber }
