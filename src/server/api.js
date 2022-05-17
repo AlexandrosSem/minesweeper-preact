@@ -9,7 +9,7 @@ router.get('/', (req, res, next) => res.json({ OK: true }));
 
 /// TODO: Extract game logic and objects to a module
 /// For now we will keep it here to make tests easier
-const GameHandler = new (function() {
+const GameHandler = new (function () {
     let _ID = 0;
     const _NewID = () => (++_ID);
     const _Games = [];
@@ -19,7 +19,7 @@ const GameHandler = new (function() {
 
         return _Games[id] = {
             id, dificulty,
-            size: [0, 0],
+            size: [10, 10],
             blocks: [],
         };
     }
@@ -33,10 +33,10 @@ const GameHandler = new (function() {
 });
 
 /// Create a new game
-router.post('/newGame', (req, res, next) => {
+router.post('/new-game', (req, res, next) => {
     const { dificulty } = req.params;
     const { id, size } = GameHandler.NewGame(dificulty);
-    res.json({ id, size });
+    res.json({ id, size, blocks: [] });
 });
 
 /// Make sure we receive a game ID
@@ -47,14 +47,14 @@ router.use((req, res, next) => {
         return res.status(401).json({ authorized: false });
     }
 
-	next();
-})
+    next();
+});
 
 /// Open a block
-router.post('/openBlock', (req, res, next) => {
+router.post('/open-block', (req, res, next) => {
     const { id, block } = req.params;
 
-    res.json({ type: 'number', value: 1, blocks: [] })
+    res.json({ type: 'number', value: 1, blocks: [], opened: true })
 });
 
 module.exports = router;

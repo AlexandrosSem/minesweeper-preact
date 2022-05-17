@@ -1,9 +1,11 @@
 const express = require('express');
-const configureAPI = require('./configure');
+const api = require('./api');
 
 const app = express();
 const { PORT = 8081 } = process.env;
+const urlPrefix = '/'; // /api;
 
 // API
-configureAPI(app);
-app.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
+app
+    .use(urlPrefix, api)
+    .listen(PORT, () => console.log(`Server started on port ${PORT}!`));

@@ -26,6 +26,7 @@
     "eslint-config-preact": "^1.3.0",
     "jest": "^24.9.0",
     "jest-preset-preact": "^1.0.0",
+    "nodemon": "^2.0.16",
     "preact-cli": "^3.3.5",
     "sirv-cli": "1.0.14"
   },
