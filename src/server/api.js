@@ -14,11 +14,11 @@ const GameHandler = new (function () {
     const _NewID = () => (++_ID);
     const _Games = [];
 
-    const NewGame = dificulty => {
+    const NewGame = difficulty => {
         const id = _NewID();
-
+        
         return _Games[id] = {
-            id, dificulty,
+            id, difficulty,
             size: [10, 10],
             blocks: [],
         };
@@ -34,8 +34,8 @@ const GameHandler = new (function () {
 
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
-    const { dificulty } = req.params;
-    const { id, size } = GameHandler.NewGame(dificulty);
+    const { difficulty } = req.params;
+    const { id, size } = GameHandler.NewGame(difficulty);
     res.json({ id, size, blocks: [] });
 });
 

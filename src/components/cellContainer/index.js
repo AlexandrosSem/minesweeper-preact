@@ -3,8 +3,7 @@ import { Cell } from '../cell/index.js';
 
 export const CellContainer = ({ number, cellsInfo, onClick }) => {
     const tArrCells = cellsInfo.map(pItem => {
-        const tNumber = pItem.number;
-        return <Cell key={tNumber} number={tNumber} onClick={onClick}></Cell>;
+        return <Cell key={pItem.number} cellInfo={pItem} onClick={onClick}></Cell>;
     });
 
 	return (

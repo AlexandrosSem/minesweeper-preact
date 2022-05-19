@@ -1,6 +1,7 @@
 import { CellContainer } from '../cellContainer/index.js';
 
-export const Board = ({ size }) => {
+export const Board = ({ id, size, blocks }) => {
+    
     const handleClick = (pNumber) => {
         tArrCells[pNumber].clicked = true;
     };
@@ -10,7 +11,7 @@ export const Board = ({ size }) => {
         number: pIndex,
         clicked: false,
     }));
-
+    
     const tArrCellContainer = Array.from({ length: tSizeRow }, (_, pIndex) => {
         const tStartIndex = (pIndex * tSizeCol);
         const tEndIndex = tStartIndex + tSizeCol;

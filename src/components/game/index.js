@@ -1,15 +1,25 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
 import { Board } from '../board';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 
 export const Game = () => {
-    /// Fetch needed here
-    const { id, size } = {id: 1, size: [9, 9], blocks: []};
+    const [data, setData] = useState(null);
+    const [diff, setDiff] = useState('normal');
+
+    useEffect(async () => {
+        const tData = await (await fetch('/api/new-game', { method: 'POST', body: JSON.stringify({difficulty: diff}) })).json();
+        setData(tData);
+    }, [diff]);
+
+    const changeDifficulty = (pDiff) => setDiff(pDiff);
+
+    if (!data) return <div class={style.game}>Loading...</div>
+
     return (
         <div class={style.game}>
-            <GameHeader></GameHeader>
-            <Board size={size}></Board>
+            <GameHeader changeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>
+            <Board id={data.id} size={data.size} blocks={data.blocks}></Board>
         </div>
     );
 };
