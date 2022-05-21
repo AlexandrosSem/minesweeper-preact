@@ -4,6 +4,17 @@ export const Board = ({ id, size, blocks }) => {
     
     const handleClick = (pNumber) => {
         tArrCells[pNumber].clicked = true;
+
+        fetch('/api/open-block', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify({ id, block: pNumber })
+        }).then(resp => resp.json()).then(data => {
+            console.log(data);
+        });
     };
     const tSizeRow = size[0];
     const tSizeCol = size[1];
