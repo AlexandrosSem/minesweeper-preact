@@ -45,21 +45,14 @@ const newGame = difficulty => {
         }));
 
     /// Populate numbers
-    new Set(
-        lBomb.map(index => blocks[index])
-            .map(block => getSiblings(block))
-            .flat()
-    ).forEach(block => {
-        if (block.type === blockType.bomb) { return; }
-
-        const tNumber = getSiblings(block)
-            .map(block => (block.type === blockType.bomb) ? 1 : 0)
-            .reduce((acc, number) => acc + number, 0);
-
-        if (tNumber > 0) {
-            block.type = blockType.number;
-            block.value = tNumber.toString();
-        }
+    lBomb.forEach(index => {
+        const block = blocks[index];
+        getSiblings(block).filter(block => !lBomb.includes(block.index))
+            .forEach(block => {
+                block.type = blockType.number;
+                if (typeof block.value !== 'number') { block.value = 0; }
+                block.value++;
+            });
     });
 
     const checkBlockBoundary = fn => {
@@ -99,11 +92,21 @@ const newGame = difficulty => {
         blocks: blocks.filter(i => !isBlockInitial(i)).map(i => ({ ...i })),
     });
 
+    /// TODO: Remove
+    const debugJSON = _ => ({
+        id,
+        difficulty,
+        status,
+        size: [ width, height ],
+        blocks: blocks.map(i => ({ ...i })),
+    })
+
     const game = {
         openBlock,
         flagBlock,
         getStatus,
         toJSON,
+        debugJSON,
     };
 
     _games[id] = game;

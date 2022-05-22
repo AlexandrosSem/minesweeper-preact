@@ -8,6 +8,18 @@ router.use(bodyParser.json());
 
 router.get('/', (req, res, next) => res.json({ OK: true }));
 
+/// TODO: Remove
+router.get('/debug/:id', (req, res, next) => {
+    const { id } = req.params;
+
+    if (!gameHandler.hasGameId(id)) {
+        return res.status(404).json({ notFound: true });
+    }
+
+    const game = gameHandler.getGameById(id);
+    res.json(game.debugJSON());
+})
+
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
     const { difficulty } = req.body;
