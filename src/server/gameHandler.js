@@ -1,32 +1,7 @@
+const { difficulty, blockType, blockStatus, gameStatus } = require('./util-enum');
+
 let _id = 0;
 const _games = [];
-
-/// TODO: Move enums and util methods to a shared file
-/// Enums
-const difficulty = Object.freeze({
-    easy: 'easy',
-    normal: 'normal',
-    hard: 'hard',
-})
-
-const blockType = Object.freeze({
-    bomb: 'bomb',
-    number: 'number',
-    blank: 'blank',
-});
-
-const blockStatus = Object.freeze({
-    initial: 'initial',
-    open: 'open',
-    flag: 'flag',
-})
-
-const gameStatus = Object.freeze({
-    starting: 'starting',
-    running: 'running',
-    won: 'won',
-    lost: 'lost',
-});
 
 /// Handler methods
 const newId = () => (++_id);

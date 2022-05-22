@@ -3,10 +3,10 @@
     return { id, size: (size), blocks: (blocks) }
 /api/open-block
     pass { id, blockNumber }
-    return { gameStatus: (gameStatus), blocks: (blocks), opened: (boolean) }
+    return { gameStatus: (gameStatus), blocks: (blocks), ok: (boolean) }
 /api/flag-block
     pass { id, blockNumber }
-    return { ok: (boolean) }
+    return { gameStatus: (gameStatus), blocks: (blocks), ok: (boolean) }
 /api/update-tick
     pass { id }
     return { time: (timeSinceRunning), gameStatus: (gameStatus) }

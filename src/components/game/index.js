@@ -1,8 +1,18 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { difficulty as enumDifficulty } from '../../server/gameHandler';
+import { difficulty as enumDifficulty } from '../../server/util-enum';
 import { Board } from '../board';
 import { useState, useEffect } from 'preact/hooks';
+
+const mapClientToServerDiff = pDiff => {
+    if (pDiff === 'easy') {
+        return enumDifficulty.easy;
+    }
+    if (pDiff === 'hard') {
+        return enumDifficulty.hard;
+    }
+    return enumDifficulty.normal;
+};
 
 export const Game = () => {
     const [data, setData] = useState(null);
@@ -15,26 +25,12 @@ export const Game = () => {
                 'Content-Type': 'application/json'
             },
             method: 'POST',
-            body: JSON.stringify({difficulty: diff})
+            body: JSON.stringify({ difficulty: mapClientToServerDiff(diff) })
         })).json();
         setData(tData);
     }, [diff]);
 
-    const changeDifficulty = (pDiff) => {
-        /// Client difficulty to server difficulty
-        switch (pDiff) {
-            case 'easy':
-                setDiff(enumDifficulty.easy);
-            break;
-            case 'normal':
-                setDiff(enumDifficulty.normal);
-            break;
-            case 'hard':
-                setDiff(enumDifficulty.hard);
-            break;
-        }
-        setDiff(pDiff)
-    };
+    const changeDifficulty = (pDiff) => setDiff(pDiff);
 
     if (!data) return <div class={style.game}>Loading...</div>
 
