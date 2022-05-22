@@ -36,7 +36,7 @@ export const Game = () => {
 
     return (
         <div class={style.game}>
-            <GameHeader changeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>
             <Board id={data.id} size={data.size} blocks={data.blocks}></Board>
         </div>
     );

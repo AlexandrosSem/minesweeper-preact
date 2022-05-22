@@ -3,13 +3,13 @@ import { MineNumber } from '../mineNumber';
 import { Reset } from '../reset';
 import { Timer } from '../timer';
 
-export const GameHeader = ({ changeDifficulty }) => {
+export const GameHeader = ({ onChangeDifficulty }) => {
     return (
         <div class={style.gameHeader}>
             <MineNumber></MineNumber>
-            <Reset key="0" title="E" difficulty="easy" changeDifficulty={changeDifficulty}></Reset>
-            <Reset key="1" title="N" difficulty="normal" changeDifficulty={changeDifficulty}></Reset>
-            <Reset key="2" title="H" difficulty="hard" changeDifficulty={changeDifficulty}></Reset>
+            <Reset key="0" title="E" difficulty="easy" onChangeDifficulty={onChangeDifficulty}></Reset>
+            <Reset key="1" title="N" difficulty="normal" onChangeDifficulty={onChangeDifficulty}></Reset>
+            <Reset key="2" title="H" difficulty="hard" onChangeDifficulty={onChangeDifficulty}></Reset>
             <Timer></Timer>
         </div>
     );
