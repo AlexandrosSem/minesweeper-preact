@@ -1,32 +1,52 @@
 import { CellContainer } from '../cellContainer/index.js';
+import { useMemo, useState } from 'preact/hooks';
 
-export const Board = ({ id, size, blocks }) => {
-    
-    const handleClick = (pNumber) => {
-        tArrCells[pNumber].clicked = true;
+export const Board = ({ id, size, blocks, status }) => {
+    const [ data, setData ] = useState({id: 0, data: []});
+    const tSizeRow = size[0];
+    const tSizeCol = size[1];
+    useMemo(() => {
+        setData({
+            id: id,
+            data: Array.from({ length: tSizeRow * tSizeCol }, (_, pIndex) => ({
+                number: pIndex,
+                clicked: false,
+                type: 'blank',
+                value: '',
+            })),
+        });
+    }, [id]);
 
-        fetch('/api/open-block', {
+    const tBlockData = data.data;
+
+    const handleClick = async (pNumber) => {
+        const tData = await (await fetch('/api/open-block', {
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             method: 'POST',
             body: JSON.stringify({ id, block: pNumber })
-        }).then(resp => resp.json()).then(data => {
-            console.log(data);
+        })).json();
+
+        tData.blocks.forEach(pItem => {
+            tBlockData[pItem.index] = {
+                clicked: true,
+                type: pItem.type,
+                value: pItem.value,
+            };
+        });
+
+        setData({
+            id: id,
+            data: [...tBlockData],
         });
     };
-    const tSizeRow = size[0];
-    const tSizeCol = size[1];
-    const tArrCells = Array.from({ length: tSizeRow * tSizeCol }, (_, pIndex) => ({
-        number: pIndex,
-        clicked: false,
-    }));
-    
+
     const tArrCellContainer = Array.from({ length: tSizeRow }, (_, pIndex) => {
         const tStartIndex = (pIndex * tSizeCol);
         const tEndIndex = tStartIndex + tSizeCol;
-        return <CellContainer key={pIndex} number={pIndex} onClick={(pNumber) => handleClick(pNumber)} cellsInfo={tArrCells.slice(tStartIndex, tEndIndex)}></CellContainer>;
+        return <CellContainer key={pIndex} number={pIndex} onClick={(pNumber) => handleClick(pNumber)} cellsInfo={tBlockData.slice(tStartIndex, tEndIndex)}></CellContainer>;
     });
 
     return (

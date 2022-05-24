@@ -5,12 +5,9 @@ import { Board } from '../board';
 import { useState, useEffect } from 'preact/hooks';
 
 const mapClientToServerDiff = pDiff => {
-    if (pDiff === 'easy') {
-        return enumDifficulty.easy;
-    }
-    if (pDiff === 'hard') {
-        return enumDifficulty.hard;
-    }
+    if (pDiff === 'easy') { return enumDifficulty.easy; }
+    if (pDiff === 'hard') { return enumDifficulty.hard; }
+    
     return enumDifficulty.normal;
 };
 
@@ -34,10 +31,12 @@ export const Game = () => {
 
     if (!data) return <div class={style.game}>Loading...</div>
 
+    console.log(data);
+
     return (
         <div class={style.game}>
             <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>
-            <Board id={data.id} size={data.size} blocks={data.blocks}></Board>
+            <Board id={data.id} size={data.size} blocks={data.blocks} status={data.status}></Board>
         </div>
     );
 };
