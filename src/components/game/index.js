@@ -13,26 +13,30 @@ const mapClientToServerDiff = pDiff => {
 
 export const Game = () => {
     const [data, setData] = useState(null);
-    const [diff, setDiff] = useState(enumDifficulty.normal);
-
     useEffect(async () => {
-        const tData = await (await fetch('/api/new-game', {
+        await fnFetchAndSetData(enumDifficulty.normal);
+    }, []);
+
+    const fnFetchData = async (pDiff) => {
+        return (await fetch('/api/new-game', {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             method: 'POST',
-            body: JSON.stringify({ difficulty: mapClientToServerDiff(diff) })
+            body: JSON.stringify({ difficulty: mapClientToServerDiff(pDiff) })
         })).json();
-        setData(tData);
-    }, [diff]);
+    };
 
-    const changeDifficulty = (pDiff) => setDiff(pDiff);
+    const fnFetchAndSetData = async (pDiff) => {
+        const tData = await fnFetchData(pDiff);
+        setData(tData);
+    };
+
+    const changeDifficulty = async (pDiff) => await fnFetchAndSetData(pDiff);
 
     if (!data) return <div class={style.game}>Loading...</div>
-
-    console.log(data);
-
+    
     return (
         <div class={style.game}>
             <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>

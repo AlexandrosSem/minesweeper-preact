@@ -1,3 +1,7 @@
 .click {
     cursor: pointer;
 }
+
+.space {
+    margin-left: 5px;
+}

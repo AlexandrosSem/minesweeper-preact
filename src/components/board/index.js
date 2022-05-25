@@ -7,7 +7,7 @@ export const Board = ({ id, size, blocks, status }) => {
     const tSizeCol = size[1];
     useMemo(() => {
         setData({
-            id: id,
+            id,
             data: Array.from({ length: tSizeRow * tSizeCol }, (_, pIndex) => ({
                 number: pIndex,
                 clicked: false,
