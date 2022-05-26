@@ -1,20 +1,15 @@
-import { useState } from 'preact/hooks'
+import { useMemo, useState } from 'preact/hooks';
 import style from '../cellContainer/style.css';
 
 export const Cell = ({ cellInfo, onClick}) => {
+	const tClicked = cellInfo.clicked;
 	const tNumber = cellInfo.number;
+	const fnActionClick = () => {
+		if (!tClicked) { onClick(tNumber); }
+	}
+	
 	const tType = cellInfo.type;
 	const tValue = cellInfo.value;
-	const [tClicked, setClicked] = useState(false);
-	const fnActionClick = () => {
-		if (tClicked) { return; }
-
-		onClick(tNumber);
-		setClicked(true);
-	};
-	if (!tClicked && cellInfo.clicked) { setClicked(true); }
-	if (tClicked && !cellInfo.clicked) { setClicked(false); }
-
 	let tValueToDisplay = '';
 	if (tType === 'bomb') { tValueToDisplay = 'B'; }
 	else if (tType === 'flag') { tValueToDisplay = 'F'; }

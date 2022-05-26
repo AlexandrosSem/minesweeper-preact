@@ -18,6 +18,7 @@ export const Board = ({ id, size, blocks, status }) => {
     }, [id]);
 
     const tBlockData = data.data;
+    if (tBlockData.length === 0) { return null; }
 
     const handleClick = async (pNumber) => {
         const tData = await (await fetch('/api/open-block', {
@@ -30,7 +31,9 @@ export const Board = ({ id, size, blocks, status }) => {
         })).json();
 
         tData.blocks.forEach(pItem => {
-            tBlockData[pItem.index] = {
+            const tIndex = pItem.index;
+            tBlockData[tIndex] = {
+                ...tBlockData[tIndex],
                 clicked: true,
                 type: pItem.type,
                 value: pItem.value,
@@ -39,7 +42,7 @@ export const Board = ({ id, size, blocks, status }) => {
 
         setData({
             id: id,
-            data: [...tBlockData],
+            data: tBlockData,
         });
     };
 
