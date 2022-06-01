@@ -17,7 +17,38 @@ router.get('/debug/:id', (req, res, next) => {
     }
 
     const game = gameHandler.getGameById(id);
-    res.json(game.debugJSON());
+    const json = game.debugJSON();
+
+    const [ x, y ] = json.size;
+    const cartesianToIndex = (w, h) => (h * x) + w;
+
+    for (let h = 0; h < y; h++) {
+
+        const lLine = [];
+        for (let w = 0; w < x; w++) {
+            const index = cartesianToIndex(w, h);
+            const block = json.blocks[index];
+
+            const { status, type, value } = block;
+            if (type === 'bomb') {
+                lLine.push('💥');
+                continue;
+            }
+            if (type === 'blank') {
+                lLine.push('  ');
+                continue;
+            }
+            if (type === 'number') {
+                lLine.push(' ' + value);
+                // lLine.push(' ');
+                continue;
+            }
+        }
+
+        console.log(`| ${lLine.join(' | ')} |`);
+    }
+
+    res.json(json);
 })
 
 /// Create a new game
