@@ -9,8 +9,39 @@ const hasGameId = id => (_games[id] !== undefined) ? true : false;
 const getGameById = id => hasGameId(id) ? _games[id] : null;
 
 /// Game methods
-const getSizeByDifficulty = difficulty => [10, 10, 3];
-const getIndexBombs = size => [0, 11, 22, 33, 44, 55, 66, 77, 88, 99];
+const getSizeByDifficulty = diff => {
+    switch (diff) {
+        case difficulty.easy:
+            return [9, 9, 10];
+            break;
+        case difficulty.normal:
+            return [16, 16, 40];
+            break;
+        case difficulty.hard:
+            return [30, 16, 99];
+            break;
+        default:
+            throw new Error(`Invalid difficulty ${diff}`);
+            break;
+    }
+};
+const getIndexBombs = (size, numBombs) => {
+    const getRandomInt = _ => Math.floor(Math.random() * size);
+    const _newIndex = function*() {
+        const lIndex = new Set([]);
+
+        while (true) {
+            const tIndex = getRandomInt();
+            if (lIndex.has(tIndex)) { continue; }
+            lIndex.add(tIndex);
+            yield tIndex;
+        }
+    }
+
+    const newIndex = _newIndex();
+    const getNewIndex = _ => newIndex.next().value;
+    return Array.from({ length: numBombs }, getNewIndex);
+}
 const indexToCartesianBuilder = width => (index) => [ index % width, Math.floor(index / width) ];
 const cartesianToIndexBuilder = width => (x, y) => (y * width) + x;
 const getSiblingMatrix = () => [
@@ -33,7 +64,7 @@ const newGame = difficulty => {
         .filter(i => i !== undefined);
 
     const totalSize = width * height;
-    const lBomb = getIndexBombs(totalSize);
+    const lBomb = getIndexBombs(totalSize, numBombs);
     const blocks = Array.from({ length: totalSize }, (_, index) => indexToCartesian(index))
         .map(([x, y], index) => ({
             index,
