@@ -4,9 +4,7 @@ import style from '../cellContainer/style.css';
 export const Cell = ({ cellInfo, onClick}) => {
 	const tClicked = cellInfo.clicked;
 	const tNumber = cellInfo.number;
-	const fnActionClick = () => {
-		if (!tClicked) { onClick(tNumber); }
-	}
+	const fnActionClick = () => onClick(tNumber);
 	
 	const tType = cellInfo.type;
 	const tValue = cellInfo.value;

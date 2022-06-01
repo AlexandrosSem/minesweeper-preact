@@ -12,10 +12,22 @@ const mapClientToServerDiff = pDiff => {
 };
 
 export const Game = () => {
-    const [data, setData] = useState(null);
+    const [ data, setData] = useState(null);
+    const [ diff, setDiff ] = useState('normal');
+    const [ reset, setReset ] = useState(false);
+    const [ blockData, setBlockData ] = useState(null);
+
+    useEffect(() => {
+        setReset(true);
+    }, [ diff ]);
+
     useEffect(async () => {
-        await fnFetchAndSetData(enumDifficulty.normal);
-    }, []);
+        if (!reset) { return; }
+
+        setReset(false);
+        const tData = await fnFetchData(diff);
+        setData(tData);
+    }, [ reset ]);
 
     const fnFetchData = async (pDiff) => {
         return (await fetch('/api/new-game', {
@@ -28,19 +40,57 @@ export const Game = () => {
         })).json();
     };
 
-    const fnFetchAndSetData = async (pDiff) => {
-        const tData = await fnFetchData(pDiff);
-        setData(tData);
+    const changeDifficulty = (pDiff) => {
+        setDiff(pDiff);
+        setReset(true);
     };
 
-    const changeDifficulty = async (pDiff) => await fnFetchAndSetData(pDiff);
+    useEffect(() => {
+        if (!data) { return; }
 
-    if (!data) return <div class={style.game}>Loading...</div>
-    
+        const tSize = data.size;
+        setBlockData(Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
+            number: pIndex,
+            clicked: false,
+            type: 'blank',
+            value: '',
+        })));
+
+    }, [ reset, data ]);
+
+    const handleSquareClick = async (pNumber) => {
+        const tBlockData = [...blockData];
+        const tBlock = tBlockData.find(pItem => pItem.number === pNumber);
+        if (tBlock.clicked) { return; }
+
+        const tData = await (await fetch('/api/open-block', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: data.id, block: pNumber })
+        })).json();
+
+        tData.blocks.forEach(pItem => {
+            const tIndex = pItem.index;
+            tBlockData[tIndex] = {
+                ...tBlockData[tIndex],
+                clicked: true,
+                type: pItem.type,
+                value: pItem.value,
+            };
+        });
+        
+        setBlockData(tBlockData);
+    };
+
+    if (!blockData) return <div class={style.game}>Loading...</div>
+
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)}></GameHeader>
-            <Board id={data.id} size={data.size} blocks={data.blocks} status={data.status}></Board>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={data.status}></GameHeader>
+            <Board onClick={(pNumber) => handleSquareClick(pNumber)} blockData={blockData} numberOfRows={data.size[0]} numberOfCols={data.size[1]}></Board>
         </div>
     );
 };

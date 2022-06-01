@@ -5,7 +5,15 @@
 }
 
 .gameDiffContainer {
+    display: inline-block;
     margin: auto;
+    width: 50px;
+    height: 18px;
+    margin-top: 5px;
+}
+
+.gameTimerContainer {
+    display: inline-block;
     width: 50px;
     height: 18px;
     margin-top: 5px;
