@@ -61,7 +61,15 @@ const newGame = difficulty => {
     const getSiblings = ({ x, y }) => getSiblingMatrix()
         .map(([ offsetX, offsetY ]) => cartesianToIndex(x + offsetX, y + offsetY))
         .map(index => blocks[index])
-        .filter(i => i !== undefined);
+        .filter(i => i !== undefined)
+        .filter(block => {
+            const { x: blockX } = block;
+
+            /// Check for board boundaries
+            if ((x === 0) && (blockX === 15)) { return false; }
+            if ((x === 15) && (blockX === 0)) { return false; }
+            return true;
+        });
 
     const totalSize = width * height;
     const lBomb = getIndexBombs(totalSize, numBombs);
