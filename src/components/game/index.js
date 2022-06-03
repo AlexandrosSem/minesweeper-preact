@@ -90,7 +90,16 @@ export const Game = () => {
     return (
         <div class={style.game}>
             <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={data.status}></GameHeader>
-            <Board onClick={(pNumber) => handleSquareClick(pNumber)} blockData={blockData} numberOfRows={data.size[0]} numberOfCols={data.size[1]}></Board>
+            <div id="DEBUG" style="text-align: right;">
+                <button title="DEBUG" onClick={async () => {
+                    const tData = await (await fetch(`/api/debug/${data.id}`, {
+                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        method: 'GET',
+                    })).json();
+
+                    console.log(tData);
+                }}>🐞</button>
+            </div>
         </div>
     );
 };

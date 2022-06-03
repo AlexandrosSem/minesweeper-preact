@@ -22,30 +22,42 @@ router.get('/debug/:id', (req, res, next) => {
     const [ x, y ] = json.size;
     const cartesianToIndex = (w, h) => (h * x) + w;
 
+    Array.from({ length: 16 }, () => console.log(''));
+
+    const _OpenClose = {
+        'initial': [ '[', ']' ],
+        'flag': [ '{', '}' ],
+        'open': [ ':', ':' ],
+        '#': [ '#', '#' ],
+    }
+
     for (let h = 0; h < y; h++) {
 
         const lLine = [];
         for (let w = 0; w < x; w++) {
             const index = cartesianToIndex(w, h);
             const block = json.blocks[index];
-
             const { status, type, value } = block;
+            const addCell = text => {
+                const [ open, close ] = _OpenClose[status] ?? _OpenClose['#'];
+                lLine.push(open + text + close);
+            }
+
             if (type === 'bomb') {
-                lLine.push('💥');
+                addCell('💥');
                 continue;
             }
             if (type === 'blank') {
-                lLine.push('  ');
+                addCell('  ');
                 continue;
             }
             if (type === 'number') {
-                lLine.push(' ' + value);
-                // lLine.push(' ');
+                addCell(' ' + value);
                 continue;
             }
         }
 
-        console.log(`| ${lLine.join(' | ')} |`);
+        console.log(`${lLine.join(' ')}`);
     }
 
     res.json(json);
