@@ -109,6 +109,7 @@ const newGame = difficulty => {
 
     const openBlock = checkBlockBoundary(block => {
         if (!isBlockInitial(block)) { return null; }
+        block.status = blockStatus.open;
 
         const { index, type, value } = block;
         return ({ index, type, value });
