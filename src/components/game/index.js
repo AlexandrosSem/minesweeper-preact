@@ -16,6 +16,7 @@ export const Game = () => {
     const [ diff, setDiff ] = useState('normal');
     const [ reset, setReset ] = useState(false);
     const [ blockData, setBlockData ] = useState(null);
+    const [ status, setStatus ] = useState('starting');
 
     useEffect(() => {
         setReset(true);
@@ -27,6 +28,7 @@ export const Game = () => {
         setReset(false);
         const tData = await fnFetchData(diff);
         setData(tData);
+        setStatus(tData.status);
     }, [ reset ]);
 
     const fnFetchData = async (pDiff) => {
@@ -81,15 +83,16 @@ export const Game = () => {
                 value: pItem.value,
             };
         });
-        
+
         setBlockData(tBlockData);
+        setStatus(tData.gameStatus);
     };
 
     if (!blockData) return <div class={style.game}>Loading...</div>
 
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={data.status}></GameHeader>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status}></GameHeader>
             <Board onClick={(pNumber) => handleSquareClick(pNumber)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <div id="DEBUG" style="text-align: right;">
                 <button title="DEBUG" onClick={async () => {

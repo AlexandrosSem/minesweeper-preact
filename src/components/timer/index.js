@@ -6,9 +6,13 @@ export const Timer = ({ status }) => {
 	const [ initTime, setInitTime ] = useState(0);
 	const [ isRunning, setIsRunning ] = useState(false);
 	const [ displayTime, setDisplayTime ] = useState('');
-	
+
 	useEffect(() => {
 		const nowRunning = ![ 'starting', 'won', 'lost' ].includes(status);
+		if (status === 'starting') {
+			setTime(0);
+			setInitTime(0);
+		}
 		setIsRunning(nowRunning);
 	}, [ status ]);
 

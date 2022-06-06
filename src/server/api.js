@@ -85,7 +85,9 @@ router.use((req, res, next) => {
 router.post('/open-block', (req, res, next) => {
     const { id, block } = req.body;
     const game = gameHandler.getGameById(id);
-    const gameStatus = game.status;
+    /// const gameStatus = game.status;
+    /// Just to test interface (It should be removed when it's done)
+    const gameStatus = 'running';
 
     const _block = game.openBlock(block);
     if (!_block) {

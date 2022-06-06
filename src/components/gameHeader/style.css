@@ -13,8 +13,8 @@
 }
 
 .gameTimerContainer {
-    display: inline-block;
-    width: 50px;
+    float: right;
     height: 18px;
     margin-top: 5px;
+    margin-right: 5px;
 }
