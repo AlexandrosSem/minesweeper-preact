@@ -103,25 +103,42 @@ const newGame = difficulty => {
     };
 
     const getStatus = _ => status;
+    const setStatus = pStatus => { status = pStatus };
     const isBlockOpen = block => block.status === blockStatus.open;
     const isBlockFlag = block => block.status === blockStatus.flag;
     const isBlockInitial = block => block.status === blockStatus.initial;
+    const isWinner = () => (getStatus() === gameStatus.won);
+    const isLoser = () => (getStatus() === gameStatus.lost);
+    const isGameRunning = () => (getStatus() === gameStatus.running);
+    const isGameDone = () => (isWinner() || isLoser());
 
     const openBlock = checkBlockBoundary(block => {
-        if (!isBlockInitial(block)) { return null; }
-        block.status = blockStatus.open;
+        if (isGameDone()) { return [ false ]; }
+        if (!isBlockInitial(block)) { return [ false ]; }
+        if (isBlockFlag(block)) { return [ false ]; }
 
         const { index, type, value } = block;
-        return ({ index, type, value });
+
+        /// Start the game on the first block
+        if (!isGameRunning()) { setStatus(gameStatus.running); }
+        Object.assign(block, { status:  blockStatus.open });
+        if (type === blockType.bomb) { setStatus(gameStatus.lost); }
+
+        return [ true, { index, type, value } ];
     });
 
     const flagBlock = checkBlockBoundary(block => {
-        if (!isBlockInitial(block)) { return null; }
-
-        block.status = blockStatus.flag;
+        if (isGameDone()) { return [ false ]; }
+        if (!isBlockInitial(block)) { return [ false ]; }
+        if (isBlockOpen(block)) { return [ false ]; }
 
         const { index } = block;
-        return ({ index });
+
+        /// Start the game on the first block
+        if (!isGameRunning()) { setStatus(gameStatus.running); }
+        Object.assign(block, { status:  blockStatus.flag });
+
+        return [ true, { index } ];
     });
 
     const toJSON = _ => ({

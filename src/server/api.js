@@ -23,6 +23,8 @@ router.get('/debug/:id', (req, res, next) => {
     const cartesianToIndex = (w, h) => (h * x) + w;
 
     Array.from({ length: 16 }, () => console.log(''));
+    console.log(`Status: ${json.status}`);
+    console.log('');
 
     const _OpenClose = {
         'initial': [ '[', ']' ],
@@ -85,24 +87,15 @@ router.use((req, res, next) => {
 router.post('/open-block', (req, res, next) => {
     const { id, block } = req.body;
     const game = gameHandler.getGameById(id);
-    /// const gameStatus = game.status;
-    /// Just to test interface (It should be removed when it's done)
-    const gameStatus = 'running';
 
-    const _block = game.openBlock(block);
-    if (!_block) {
-        return res.json({
-            gameStatus,
-            ok: false,
-            blocks: [],
-        });
-    }
+    const [ ok, { index, type, value } = {} ] = game.openBlock(block);
+    const ret = { gameStatus: game.status, ok, blocks: [] };
 
-    const { index, type, value } = _block;
+    if (!ok) { return res.json(ret); }
+
     return res.json({
-        gameStatus,
-        ok: true,
-        blocks: [ { index, type, value } ]
+        ...ret,
+        blocks: [ { index, type, value } ],
     });
 });
 
@@ -111,20 +104,14 @@ router.post('/flag-block', (req, res, next) => {
     const { id, block } = req.body;
     const game = gameHandler.getGameById(id);
 
-    const _block = game.flagBlock(block);
-    if (!_block) {
-        return res.json({
-            gameStatus,
-            ok: false,
-            blocks: [],
-        });
-    }
+    const [ ok, { index }] = {} = game.flagBlock(block);
+    const ret = { gameStatus: game.status, ok, blocks: [] };
 
-    const { index } = _block;
+    if (!ok) { return res.json(ret); }
+
     return res.json({
-        gameStatus,
-        ok: true,
-        blocks: [ { index } ]
+        ...ret,
+        blocks: [ { index } ],
     });
 });
 
