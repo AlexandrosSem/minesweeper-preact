@@ -3,7 +3,7 @@ import { GameHeader } from '../gameHeader';
 import { difficulty as enumDifficulty } from '../../server/util-enum';
 import { Board } from '../board';
 import { Debug } from '../debug';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useReducer } from 'preact/hooks';
 
 const mapClientToServerDiff = pDiff => {
     if (pDiff === 'easy') { return enumDifficulty.easy; }
@@ -16,8 +16,16 @@ export const Game = () => {
     const [ data, setData ] = useState(null);
     const [ diff, setDiff ] = useState('normal');
     const [ reset, setReset ] = useState(false);
-    const [ blockData, setBlockData ] = useState(null);
     const [ status, setStatus ] = useState('starting');
+    const [ blockData, dispatchBlockData ] = useReducer((pState, pData) => {
+        const tBlockData = pData.blockData;
+        if (tBlockData) { return tBlockData; }
+
+        const tIndex = pData.index;
+        pState[tIndex] = { ...pState[tIndex], ...pData.options };
+
+        return [ ...pState ];
+    }, null);
 
     useEffect(() => {
         setReset(true);
@@ -52,20 +60,20 @@ export const Game = () => {
         if (!data) { return; }
 
         const tSize = data.size;
-        setBlockData(Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
-            number: pIndex,
-            clicked: false,
-            type: 'blank',
-            value: '',
-        })));
-
+        dispatchBlockData({
+            blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
+                number: pIndex,
+                clicked: false,
+                type: 'blank',
+                value: '',
+            })),
+        });
     }, [ reset, data ]);
 
     const handleSquareClick = async (pNumber) => {
         if ([ 'won', 'lost' ].includes(status)) { return; }
 
-        const tBlockData = [...blockData];
-        const tBlock = tBlockData.find(pItem => pItem.number === pNumber);
+        const tBlock = blockData.find(pItem => pItem.number === pNumber);
         if (tBlock.clicked) { return; }
         
         const tData = await (await fetch('/api/open-block', {
@@ -78,16 +86,16 @@ export const Game = () => {
         })).json();
 
         tData.blocks.forEach(pItem => {
-            const tIndex = pItem.index;
-            tBlockData[tIndex] = {
-                ...tBlockData[tIndex],
-                clicked: true,
-                type: pItem.type,
-                value: pItem.value,
-            };
+            dispatchBlockData({
+                index: pItem.index,
+                options: {
+                    clicked: true,
+                    type: pItem.type,
+                    value: pItem.value,
+                },
+            });
         });
 
-        setBlockData(tBlockData);
         setStatus(tData.gameStatus);
     };
 
