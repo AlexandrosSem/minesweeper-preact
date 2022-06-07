@@ -149,6 +149,7 @@ const newGame = difficulty => {
         difficulty,
         status,
         size: [ width, height ],
+        flags: numBombs,
         blocks: blocks.filter(i => !isBlockInitial(i)).map(i => ({ ...i })),
     });
 
