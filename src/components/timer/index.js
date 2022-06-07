@@ -8,12 +8,12 @@ export const Timer = ({ status }) => {
 	const [ displayTime, setDisplayTime ] = useState('');
 
 	useEffect(() => {
-		const nowRunning = ![ 'starting', 'won', 'lost' ].includes(status);
+		const tNowRunning = (status === 'running');
 		if (status === 'starting') {
 			setTime(0);
 			setInitTime(0);
 		}
-		setIsRunning(nowRunning);
+		setIsRunning(tNowRunning);
 	}, [ status ]);
 
 	useEffect(() => {

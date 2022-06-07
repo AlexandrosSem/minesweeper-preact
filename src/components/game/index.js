@@ -61,10 +61,12 @@ export const Game = () => {
     }, [ reset, data ]);
 
     const handleSquareClick = async (pNumber) => {
+        if ([ 'won', 'lost' ].includes(status)) { return; }
+
         const tBlockData = [...blockData];
         const tBlock = tBlockData.find(pItem => pItem.number === pNumber);
         if (tBlock.clicked) { return; }
-
+        
         const tData = await (await fetch('/api/open-block', {
             headers: {
                 'Accept': 'application/json',
