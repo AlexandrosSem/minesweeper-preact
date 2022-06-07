@@ -92,7 +92,7 @@ router.post('/open-block', (req, res, next) => {
     const game = gameHandler.getGameById(id);
 
     const [ ok, { index, type, value } = {} ] = game.openBlock(block);
-    const ret = { gameStatus: game.status, ok, blocks: [] };
+    const ret = { gameStatus: game.getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
 
@@ -108,7 +108,7 @@ router.post('/flag-block', (req, res, next) => {
     const game = gameHandler.getGameById(id);
 
     const [ ok, { index }] = {} = game.flagBlock(block);
-    const ret = { gameStatus: game.status, ok, blocks: [] };
+    const ret = { gameStatus: game.getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
 
