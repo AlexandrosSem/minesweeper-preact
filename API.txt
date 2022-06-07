@@ -1,6 +1,6 @@
 /api/new-game
     pass { difficulty: (difficulty) }
-    return { id, size: (size), blocks: (blocks) }
+    return { id, size: (size), blocks: (blocks), flags: (number) }
 /api/open-block
     pass { id, blockNumber }
     return { gameStatus: (gameStatus), blocks: (blocks), ok: (boolean) }
