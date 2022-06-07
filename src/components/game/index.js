@@ -2,6 +2,7 @@ import style from './style.css';
 import { GameHeader } from '../gameHeader';
 import { difficulty as enumDifficulty } from '../../server/util-enum';
 import { Board } from '../board';
+import { Debug } from '../debug';
 import { useState, useEffect } from 'preact/hooks';
 
 const mapClientToServerDiff = pDiff => {
@@ -96,16 +97,7 @@ export const Game = () => {
         <div class={style.game}>
             <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status}></GameHeader>
             <Board onClick={(pNumber) => handleSquareClick(pNumber)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
-            <div id="DEBUG" style="text-align: right;">
-                <button title="DEBUG" onClick={async () => {
-                    const tData = await (await fetch(`/api/debug/${data.id}`, {
-                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                        method: 'GET',
-                    })).json();
-
-                    console.log(tData);
-                }}>🐞</button>
-            </div>
+            <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>
     );
 };

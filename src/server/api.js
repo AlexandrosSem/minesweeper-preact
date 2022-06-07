@@ -11,6 +11,8 @@ router.get('/', (req, res, next) => res.json({ OK: true }));
 /// TODO: Remove
 router.get('/debug/:id', (req, res, next) => {
     const { id } = req.params;
+    const { consoleLog } = req.query;
+    const log = (...args) => (consoleLog !== '0') && console.log(...args);
 
     if (!gameHandler.hasGameId(id)) {
         return res.status(404).json({ notFound: true });
@@ -22,9 +24,9 @@ router.get('/debug/:id', (req, res, next) => {
     const [ x, y ] = json.size;
     const cartesianToIndex = (w, h) => (h * x) + w;
 
-    Array.from({ length: 16 }, () => console.log(''));
-    console.log(`Status: ${json.status}`);
-    console.log('');
+    Array.from({ length: 16 }, () => log(''));
+    log(`Status: ${json.status}`);
+    log('');
 
     const _OpenClose = {
         'initial': [ '[', ']' ],
@@ -54,12 +56,13 @@ router.get('/debug/:id', (req, res, next) => {
                 continue;
             }
             if (type === 'number') {
-                addCell(' ' + value);
+                const getNumberFromValue = value => value;
+                addCell(' ' + getNumberFromValue(value));
                 continue;
             }
         }
 
-        console.log(`${lLine.join(' ')}`);
+        log(`${lLine.join(' ')}`);
     }
 
     res.json(json);
