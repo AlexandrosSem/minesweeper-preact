@@ -115,14 +115,18 @@ const newGame = difficulty => {
     const openBlock = checkBlockBoundary(block => {
         if (isGameDone()) { return [ false ]; }
         if (!isBlockInitial(block)) { return [ false ]; }
-        if (isBlockFlag(block)) { return [ false ]; }
 
         const { index, type, value } = block;
 
         /// Start the game on the first block
         if (!isGameRunning()) { setStatus(gameStatus.running); }
         Object.assign(block, { status:  blockStatus.open });
-        if (type === blockType.bomb) { setStatus(gameStatus.lost); }
+        /// Check for win / lose conditions
+        if (type === blockType.bomb) {
+            setStatus(gameStatus.lost);
+        } else if (blocks.filter(block => block.type !== blockType.bomb).every(block => block.status === blockStatus.open)) {
+            setStatus(gameStatus.won);
+        }
 
         return [ true, { index, type, value } ];
     });
@@ -130,7 +134,6 @@ const newGame = difficulty => {
     const flagBlock = checkBlockBoundary(block => {
         if (isGameDone()) { return [ false ]; }
         if (!isBlockInitial(block)) { return [ false ]; }
-        if (isBlockOpen(block)) { return [ false ]; }
 
         const { index } = block;
 
