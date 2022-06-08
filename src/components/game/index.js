@@ -51,6 +51,28 @@ export const Game = () => {
         })).json();
     };
 
+    const fnFetchOpenBlockData = async (pNumber) => {
+        return (await fetch('/api/open-block', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: data.id, block: pNumber })
+        })).json();
+    };
+
+    const fnFetchFlagBlockData = async (pNumber) => {
+        return (await fetch('/api/flag-block', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: data.id, block: pNumber })
+        })).json();
+    };
+
     const changeDifficulty = (pDiff) => {
         setDiff(pDiff);
         setReset(true);
@@ -64,26 +86,16 @@ export const Game = () => {
             blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
                 number: pIndex,
                 clicked: false,
+                flagged: false,
                 type: 'blank',
                 value: '',
             })),
         });
     }, [ reset, data ]);
 
-    const handleSquareClick = async (pNumber) => {
-        if ([ 'won', 'lost' ].includes(status)) { return; }
 
-        const tBlock = blockData.find(pItem => pItem.number === pNumber);
-        if (tBlock.clicked) { return; }
-        
-        const tData = await (await fetch('/api/open-block', {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            body: JSON.stringify({ id: data.id, block: pNumber })
-        })).json();
+    const handleSquareNormalClick = async (pNumber) => {
+        const tData = await fnFetchOpenBlockData(pNumber);
 
         tData.blocks.forEach(pItem => {
             dispatchBlockData({
@@ -99,12 +111,44 @@ export const Game = () => {
         setStatus(tData.gameStatus);
     };
 
+    const handleSquareControlPlusClick = async (pNumber, pPrevFlagValue) => {
+        const tData = await fnFetchFlagBlockData(pNumber);
+        
+        tData.blocks.forEach(pItem => {
+            dispatchBlockData({
+                index: pItem.index,
+                options: {
+                    flagged: !pPrevFlagValue,
+                },
+            });
+        });
+
+        setStatus(tData.gameStatus);
+    };
+
+    const handleSquareClick = async (pEvent, pNumber) => {
+        if ([ 'won', 'lost' ].includes(status)) { return; }
+
+        const tBlock = blockData.find(pItem => pItem.number === pNumber);
+        if (tBlock.clicked) { return; }
+
+        const tPrevFlagValue = tBlock.flagged;
+        const tIsNormalClick = !(pEvent?.ctrlKey ?? false);
+        if ((tPrevFlagValue === true) && (tIsNormalClick)) { return; }
+
+        if (tIsNormalClick) {
+            await handleSquareNormalClick(pNumber);
+        } else {
+            await handleSquareControlPlusClick(pNumber, tPrevFlagValue);
+        }
+    };
+
     if (!blockData) return <div class={style.game}>Loading...</div>
 
     return (
         <div class={style.game}>
             <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status}></GameHeader>
-            <Board onClick={(pNumber) => handleSquareClick(pNumber)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
+            <Board onClick={(pEvent, pNumber) => handleSquareClick(pEvent, pNumber)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>
     );
