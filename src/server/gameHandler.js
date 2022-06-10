@@ -11,13 +11,13 @@ const getGameById = id => hasGameId(id) ? _games[id] : null;
 /// Game methods
 const getSizeByDifficulty = diff => {
     switch (diff) {
-        case difficulty.easy:
+        case difficulty.EASY:
             return [9, 9, 10];
             break;
-        case difficulty.normal:
+        case difficulty.NORMAL:
             return [16, 16, 40];
             break;
-        case difficulty.hard:
+        case difficulty.HARD:
             return [30, 16, 99];
             break;
         default:
@@ -53,7 +53,13 @@ const getSiblingMatrix = () => [
 const newGame = difficulty => {
     const id = newId();
     const [ width, height, numBombs ] = getSizeByDifficulty(difficulty);
-    let status = gameStatus.starting;
+    let status = gameStatus.STARTING;
+
+    const getStatus = _ => status;
+    const startGame = () => { status = gameStatus.RUNNING };
+    const endGame = (isWin) => { status = isWin ? gameStatus.WON : gameStatus.LOST; };
+    const isGameRunning = () => (status === gameStatus.RUNNING);
+    const isGameDone = () => ([ gameStatus.WON, gameStatus.LOST ].includes(status));
 
     const indexToCartesian = indexToCartesianBuilder(width);
     const cartesianToIndex = cartesianToIndexBuilder(width);
@@ -78,8 +84,9 @@ const newGame = difficulty => {
             index,
             x,
             y,
-            status: blockStatus.initial,
-            type: lBomb.includes(index) ? blockType.bomb : blockType.blank,
+            isOpen: false,
+            isFlag: false,
+            type: lBomb.includes(index) ? blockType.BOMB : blockType.BLANK,
             value: '',
         }));
 
@@ -88,7 +95,7 @@ const newGame = difficulty => {
         const block = blocks[index];
         getSiblings(block).filter(block => !lBomb.includes(block.index))
             .forEach(block => {
-                block.type = blockType.number;
+                block.type = blockType.NUMBER;
                 if (typeof block.value !== 'number') { block.value = 0; }
                 block.value++;
             });
@@ -102,46 +109,42 @@ const newGame = difficulty => {
         };
     };
 
-    const getStatus = _ => status;
-    const setStatus = pStatus => { status = pStatus };
-    const isBlockOpen = block => block.status === blockStatus.open;
-    const isBlockFlag = block => block.status === blockStatus.flag;
-    const isBlockInitial = block => block.status === blockStatus.initial;
-    const isWinner = () => (getStatus() === gameStatus.won);
-    const isLoser = () => (getStatus() === gameStatus.lost);
-    const isGameRunning = () => (getStatus() === gameStatus.running);
-    const isGameDone = () => (isWinner() || isLoser());
+    const isBlockOpen = block => (block.isOpen === true);
+    const isBlockFlag = block => (block.isFlag === true);
 
     const openBlock = checkBlockBoundary(block => {
         if (isGameDone()) { return [ false ]; }
-        if (!isBlockInitial(block)) { return [ false ]; }
+        if (isBlockOpen(block)) { return [ false ]; }
+        if (isBlockFlag(block)) { return [ false ]; }
+        /// Start the game on the first block
+        if (!isGameRunning()) { startGame(); }
 
         const { index, type, value } = block;
+        const status = blockStatus.OPEN;
 
-        /// Start the game on the first block
-        if (!isGameRunning()) { setStatus(gameStatus.running); }
-        Object.assign(block, { status:  blockStatus.open });
+        Object.assign(block, { isOpen: true });
         /// Check for win / lose conditions
-        if (type === blockType.bomb) {
-            setStatus(gameStatus.lost);
-        } else if (blocks.filter(block => block.type !== blockType.bomb).every(block => block.status === blockStatus.open)) {
-            setStatus(gameStatus.won);
+        if (type === blockType.BOMB) {
+            endGame(false);
+        } else if (blocks.filter(block => block.type !== blockType.BOMB).every(block => isBlockOpen(block))) {
+            endGame(true);
         }
 
-        return [ true, { index, type, value } ];
+        return [ true, { index, status, type, value } ];
     });
 
     const flagBlock = checkBlockBoundary(block => {
         if (isGameDone()) { return [ false ]; }
-        if (!isBlockInitial(block)) { return [ false ]; }
+        /// Start the game on the first block
+        if (!isGameRunning()) { startGame(); }
 
         const { index } = block;
+        const isFlag = !isBlockFlag(block);
+        const status = isFlag ? blockStatus.FLAG : blockStatus.CLOSED;
 
-        /// Start the game on the first block
-        if (!isGameRunning()) { setStatus(gameStatus.running); }
-        Object.assign(block, { status:  blockStatus.flag });
+        Object.assign(block, { isFlag });
 
-        return [ true, { index } ];
+        return [ true, { index, status, type: null, value: null } ];
     });
 
     const toJSON = _ => ({
@@ -150,7 +153,7 @@ const newGame = difficulty => {
         status,
         size: [ width, height ],
         flags: numBombs,
-        blocks: blocks.filter(i => !isBlockInitial(i)).map(i => ({ ...i })),
+        blocks: blocks.filter(i => isBlockOpen(i)).map(i => ({ ...i })),
     });
 
     /// TODO: Remove
@@ -175,10 +178,6 @@ const newGame = difficulty => {
 };
 
 module.exports = {
-    difficulty,
-    blockType,
-    blockStatus,
-    gameStatus,
     hasGameId,
     newGame,
     getGameById,

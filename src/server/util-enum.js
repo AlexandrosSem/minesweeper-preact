@@ -1,27 +1,27 @@
 /// Enums
 const difficulty = Object.freeze({
-    easy: 'easy',
-    normal: 'normal',
-    hard: 'hard',
+    EASY: 'easy',
+    NORMAL: 'normal',
+    HARD: 'hard',
 })
 
 const blockType = Object.freeze({
-    bomb: 'bomb',
-    number: 'number',
-    blank: 'blank',
+    BOMB: 'bomb',
+    NUMBER: 'number',
+    BLANK: 'blank',
 });
 
 const blockStatus = Object.freeze({
-    initial: 'initial',
-    open: 'open',
-    flag: 'flag',
+    CLOSED: 'closed',
+    OPEN: 'open',
+    FLAG: 'flag',
 })
 
 const gameStatus = Object.freeze({
-    starting: 'starting',
-    running: 'running',
-    won: 'won',
-    lost: 'lost',
+    STARTING: 'starting',
+    RUNNING: 'running',
+    WON: 'won',
+    LOST: 'lost',
 });
 
 module.exports = {

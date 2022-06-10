@@ -1,16 +1,30 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { difficulty as enumDifficulty } from '../../server/util-enum';
+import { difficulty as enumDifficulty, gameStatus as enumGameStatus } from '../../server/util-enum';
 import { Board } from '../board';
 import { Debug } from '../debug';
 import { useState, useEffect, useReducer } from 'preact/hooks';
 
 const mapClientToServerDiff = pDiff => {
-    if (pDiff === 'easy') { return enumDifficulty.easy; }
-    if (pDiff === 'hard') { return enumDifficulty.hard; }
-    
-    return enumDifficulty.normal;
+    const { EASY, NORMAL, HARD } = enumDifficulty;
+    if (pDiff === 'easy') { return EASY; }
+    else if (pDiff === 'hard') { return HARD; }
+
+    return NORMAL;
 };
+
+const mapServerToClientStatus = pStatus => {
+    const { RUNNING, WON, LOST } = enumGameStatus;
+    if (pStatus === RUNNING) { return 'running'; }
+    else if (pStatus === WON) { return 'won'; }
+    else if (pStatus === LOST) { return 'won'; }
+
+    return 'starting';
+}
+
+/// TODO: map block status from server to client
+///     When status can be 'closed', 'flag' or 'open'. However we need to split in isOpen and isFlag.
+///     so the client work properly (see handleSquareNormalClick and handleSquareControlPlusClick)
 
 export const Game = () => {
     const [ data, setData ] = useState(null);
@@ -37,7 +51,7 @@ export const Game = () => {
         setReset(false);
         const tData = await fnFetchData(diff);
         setData(tData);
-        setStatus(tData.status);
+        setStatus(mapServerToClientStatus(tData.status));
     }, [ reset ]);
 
     const fnFetchData = async (pDiff) => {
@@ -108,12 +122,13 @@ export const Game = () => {
             });
         });
 
-        setStatus(tData.gameStatus);
+        setStatus(mapServerToClientStatus(tData.gameStatus));
     };
 
     const handleSquareControlPlusClick = async (pNumber, pPrevFlagValue) => {
         const tData = await fnFetchFlagBlockData(pNumber);
-        
+
+        /// TODO: Server now handle toggle of flag values
         tData.blocks.forEach(pItem => {
             dispatchBlockData({
                 index: pItem.index,
@@ -123,7 +138,7 @@ export const Game = () => {
             });
         });
 
-        setStatus(tData.gameStatus);
+        setStatus(mapServerToClientStatus(tData.gameStatus));
     };
 
     const handleSquareClick = async (pEvent, pNumber) => {

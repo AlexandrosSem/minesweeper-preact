@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const gameHandler = require('./gameHandler');
+const { hasGameId, getGameById, newGame } = require('./gameHandler');
 
 const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -14,12 +14,12 @@ router.get('/debug/:id', (req, res, next) => {
     const { consoleLog } = req.query;
     const log = (...args) => (consoleLog !== '0') && console.log(...args);
 
-    if (!gameHandler.hasGameId(id)) {
+    if (!hasGameId(id)) {
         return res.status(404).json({ notFound: true });
     }
 
-    const game = gameHandler.getGameById(id);
-    const json = game.debugJSON();
+    const { debugJSON } = getGameById(id);
+    const json = debugJSON();
 
     const [ x, y ] = json.size;
     const cartesianToIndex = (w, h) => (h * x) + w;
@@ -29,11 +29,10 @@ router.get('/debug/:id', (req, res, next) => {
     log('');
 
     const _OpenClose = {
-        'initial': [ '[', ']' ],
+        'closed': [ '[', ']' ],
         'flag': [ '{', '}' ],
         'open': [ ':', ':' ],
-        '#': [ '#', '#' ],
-    }
+    };
 
     for (let h = 0; h < y; h++) {
 
@@ -41,9 +40,15 @@ router.get('/debug/:id', (req, res, next) => {
         for (let w = 0; w < x; w++) {
             const index = cartesianToIndex(w, h);
             const block = json.blocks[index];
-            const { status, type, value } = block;
+            const { isOpen, isFlag, type, value } = block;
+            const status = isOpen
+                ? 'open'
+                : isFlag
+                    ? 'flag'
+                    : 'closed'
+
             const addCell = text => {
-                const [ open, close ] = _OpenClose[status] ?? _OpenClose['#'];
+                const [ open, close ] = _OpenClose[status];
                 lLine.push(open + text + close);
             }
 
@@ -71,15 +76,15 @@ router.get('/debug/:id', (req, res, next) => {
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
     const { difficulty } = req.body;
-    const game = gameHandler.newGame(difficulty);
-    res.json(game.toJSON());
+    const { toJSON } = newGame(difficulty);
+    res.json(toJSON());
 });
 
 /// Make sure we receive a game ID
 router.use((req, res, next) => {
     const { id } = req.body;
 
-    if (!gameHandler.hasGameId(id)) {
+    if (!hasGameId(id)) {
         return res.status(401).json({ authorized: false });
     }
 
@@ -88,33 +93,35 @@ router.use((req, res, next) => {
 
 /// Open a block
 router.post('/open-block', (req, res, next) => {
-    const { id, block } = req.body;
-    const game = gameHandler.getGameById(id);
+    const { id, block: blockNumber } = req.body;
+    const { openBlock, getStatus } = getGameById(id);
 
-    const [ ok, { index, type, value } = {} ] = game.openBlock(block);
-    const ret = { gameStatus: game.getStatus(), ok, blocks: [] };
+    const [ ok, block = {} ] = openBlock(blockNumber);
+    const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
 
+    const { index, status, type, value } = block;
     return res.json({
         ...ret,
-        blocks: [ { index, type, value } ],
+        blocks: [ { index, status, type, value } ],
     });
 });
 
 /// flag a block
 router.post('/flag-block', (req, res, next) => {
-    const { id, block } = req.body;
-    const game = gameHandler.getGameById(id);
+    const { id, block: blockNumber } = req.body;
+    const { flagBlock, getStatus } = getGameById(id);
 
-    const [ ok, { index }] = {} = game.flagBlock(block);
-    const ret = { gameStatus: game.getStatus(), ok, blocks: [] };
+    const [ ok, block ] = {} = flagBlock(blockNumber);
+    const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
 
+    const { index, status, type, value } = block;
     return res.json({
         ...ret,
-        blocks: [ { index } ],
+        blocks: [ { index, status, type, value } ],
     });
 });
 
