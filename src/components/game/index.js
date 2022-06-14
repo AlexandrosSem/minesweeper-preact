@@ -31,6 +31,7 @@ export const Game = () => {
     const [ diff, setDiff ] = useState('normal');
     const [ reset, setReset ] = useState(false);
     const [ status, setStatus ] = useState('starting');
+    const [ flagStatus, setFlagStatus ] = useState('');
     const [ blockData, dispatchBlockData ] = useReducer((pState, pData) => {
         const tBlockData = pData.blockData;
         if (tBlockData) { return tBlockData; }
@@ -45,13 +46,19 @@ export const Game = () => {
         setReset(true);
     }, [ diff ]);
 
+    useEffect(() => {
+        setFlagStatus('');
+    }, [ flagStatus ]);
+
     useEffect(async () => {
         if (!reset) { return; }
 
         setReset(false);
         const tData = await fnFetchData(diff);
+        console.log(tData);
         setData(tData);
         setStatus(mapServerToClientStatus(tData.status));
+        setFlagStatus('');
     }, [ reset ]);
 
     const fnFetchData = async (pDiff) => {
@@ -128,27 +135,29 @@ export const Game = () => {
     const handleSquareControlPlusClick = async (pNumber, pPrevFlagValue) => {
         const tData = await fnFetchFlagBlockData(pNumber);
 
-        /// TODO: Server now handle toggle of flag values
         tData.blocks.forEach(pItem => {
             dispatchBlockData({
                 index: pItem.index,
                 options: {
-                    flagged: !pPrevFlagValue,
+                    flagged: (pItem.status === 'flag'),
                 },
             });
         });
 
         setStatus(mapServerToClientStatus(tData.gameStatus));
+
+        if (pPrevFlagValue === false) { setFlagStatus('decrease'); }
+        else { setFlagStatus('increase'); }
     };
 
-    const handleSquareClick = async (pEvent, pNumber) => {
+    const handleSquareClick = async (pNumber, pIsClickedWithControl = false) => {
         if ([ 'won', 'lost' ].includes(status)) { return; }
 
         const tBlock = blockData.find(pItem => pItem.number === pNumber);
         if (tBlock.clicked) { return; }
 
         const tPrevFlagValue = tBlock.flagged;
-        const tIsNormalClick = !(pEvent?.ctrlKey ?? false);
+        const tIsNormalClick = !pIsClickedWithControl;
         if ((tPrevFlagValue === true) && (tIsNormalClick)) { return; }
 
         if (tIsNormalClick) {
@@ -159,11 +168,11 @@ export const Game = () => {
     };
 
     if (!blockData) return <div class={style.game}>Loading...</div>
-
+    
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status}></GameHeader>
-            <Board onClick={(pEvent, pNumber) => handleSquareClick(pEvent, pNumber)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status} reset={reset} flags={data.flags} flagStatus={flagStatus}></GameHeader>
+            <Board onClick={(pNumber, pIsClickedWithControl) => handleSquareClick(pNumber, pIsClickedWithControl)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>
     );

@@ -18,7 +18,7 @@ export const Debug = ({ data, onSquareClick }) => {
                 const tData = await requestDebug(0);
                 await Promise.all(
                     tData.blocks.filter(block => block.type !== 'bomb')
-                        .map(block => onSquareClick(undefined, block.index))
+                        .map(block => onSquareClick(block.index))
                 );
 
                 await requestDebug(1);

@@ -5,7 +5,7 @@ export const Cell = ({ cellInfo, onClick}) => {
 	const tClicked = cellInfo.clicked;
 	const tFlagged = cellInfo.flagged;
 	const tNumber = cellInfo.number;
-	const fnActionClick = (pEvent) => onClick(pEvent, tNumber);
+	const fnActionClick = (pEvent) => onClick(tNumber, pEvent.ctrlKey);
 
 	const tType = cellInfo.type;
 	const tValue = cellInfo.value;

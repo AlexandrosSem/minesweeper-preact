@@ -1,12 +1,14 @@
 import style from './style.css';
-import { MineNumber } from '../mineNumber';
+import { FlagNumber } from '../flagNumber';
 import { Reset } from '../reset';
 import { Timer } from '../timer';
 
-export const GameHeader = ({ onChangeDifficulty, status }) => {
+export const GameHeader = ({ onChangeDifficulty, status, reset, flags, flagStatus }) => {
     return (
         <div class={style.gameHeader}>
-            <MineNumber></MineNumber>
+            <div class={style.gameFlagContainer}>
+                <FlagNumber reset={reset} flags={flags} flagStatus={flagStatus}></FlagNumber>
+            </div>
             <div class={style.gameDiffContainer}>
                 <Reset key="0" title="E" difficulty="easy" onChangeDifficulty={onChangeDifficulty}></Reset>
                 <Reset key="1" title="N" difficulty="normal" onChangeDifficulty={onChangeDifficulty}></Reset>
