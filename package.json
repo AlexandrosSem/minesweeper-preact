@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "minesweeper-preact",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "dev": "concurrently -k npm:dev:*"
+  },
+  "dependencies": {
+    "concurrently": "^7.2.2"
+  },
+  "workspaces": [ "projects/*" ]
+}

@@ -1,6 +1,6 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { difficulty as enumDifficulty, gameStatus as enumGameStatus } from '../../server/util-enum';
+import { difficulty as enumDifficulty, gameStatus as enumGameStatus } from 'server/src/util-enum';
 import { Board } from '../board';
 import { Debug } from '../debug';
 import { useState, useEffect, useReducer } from 'preact/hooks';

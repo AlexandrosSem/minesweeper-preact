@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "server",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src",
+    "dev": "nodemon --watch src src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}
