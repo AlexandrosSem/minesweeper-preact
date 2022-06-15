@@ -1,4 +1,3 @@
-import style from './style.css';
 import { useState, useEffect } from 'preact/hooks';
 
 export const FlagNumber = ({ reset, flags, flagStatus }) => {

@@ -22,10 +22,6 @@ const mapServerToClientStatus = pStatus => {
     return 'starting';
 }
 
-/// TODO: map block status from server to client
-///     When status can be 'closed', 'flag' or 'open'. However we need to split in isOpen and isFlag.
-///     so the client work properly (see handleSquareNormalClick and handleSquareControlPlusClick)
-
 export const Game = () => {
     const [ data, setData ] = useState(null);
     const [ diff, setDiff ] = useState('normal');
@@ -55,7 +51,6 @@ export const Game = () => {
 
         setReset(false);
         const tData = await fnFetchData(diff);
-        console.log(tData);
         setData(tData);
         setStatus(mapServerToClientStatus(tData.status));
         setFlagStatus('');
@@ -106,8 +101,7 @@ export const Game = () => {
         dispatchBlockData({
             blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
                 number: pIndex,
-                clicked: false,
-                flagged: false,
+                status: 'closed',
                 type: 'blank',
                 value: '',
             })),
@@ -115,14 +109,16 @@ export const Game = () => {
     }, [ reset, data ]);
 
 
-    const handleSquareNormalClick = async (pNumber) => {
+    const handleSquareNormalClick = async (pNumber, pIsFlagged) => {
+        if (pIsFlagged) { return; }
+
         const tData = await fnFetchOpenBlockData(pNumber);
 
         tData.blocks.forEach(pItem => {
             dispatchBlockData({
                 index: pItem.index,
                 options: {
-                    clicked: true,
+                    status: pItem.status,
                     type: pItem.type,
                     value: pItem.value,
                 },
@@ -132,38 +128,40 @@ export const Game = () => {
         setStatus(mapServerToClientStatus(tData.gameStatus));
     };
 
-    const handleSquareControlPlusClick = async (pNumber, pPrevFlagValue) => {
+    const handleSquareControlPlusClick = async (pNumber) => {
         const tData = await fnFetchFlagBlockData(pNumber);
 
         tData.blocks.forEach(pItem => {
+            const tBlockStatus = pItem.status;
             dispatchBlockData({
                 index: pItem.index,
                 options: {
-                    flagged: (pItem.status === 'flag'),
+                    status: tBlockStatus,
                 },
             });
+
+            if (tBlockStatus === 'closed') { setFlagStatus('increase'); }
+            else if (tBlockStatus === 'flag') { setFlagStatus('decrease'); }
+            else { setFlagStatus(''); }
         });
 
         setStatus(mapServerToClientStatus(tData.gameStatus));
-
-        if (pPrevFlagValue === false) { setFlagStatus('decrease'); }
-        else { setFlagStatus('increase'); }
     };
 
     const handleSquareClick = async (pNumber, pIsClickedWithControl = false) => {
         if ([ 'won', 'lost' ].includes(status)) { return; }
 
         const tBlock = blockData.find(pItem => pItem.number === pNumber);
-        if (tBlock.clicked) { return; }
-
-        const tPrevFlagValue = tBlock.flagged;
+        const tBlockStatus = tBlock.status;
+        if (tBlockStatus === 'open') { return; }
+        
+        const tIsFlagged = (tBlockStatus === 'flag');
         const tIsNormalClick = !pIsClickedWithControl;
-        if ((tPrevFlagValue === true) && (tIsNormalClick)) { return; }
 
         if (tIsNormalClick) {
-            await handleSquareNormalClick(pNumber);
+            await handleSquareNormalClick(pNumber, tIsFlagged);
         } else {
-            await handleSquareControlPlusClick(pNumber, tPrevFlagValue);
+            await handleSquareControlPlusClick(pNumber);
         }
     };
 
