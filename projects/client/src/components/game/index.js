@@ -28,6 +28,8 @@ export const Game = () => {
     const [ reset, setReset ] = useState(false);
     const [ status, setStatus ] = useState('starting');
     const [ flagStatus, setFlagStatus ] = useState('');
+    const [ timer, setTimer ] = useState(0);
+    const [ timerId, setTimerId ] = useState(0);
     const [ blockData, dispatchBlockData ] = useReducer((pState, pData) => {
         const tBlockData = pData.blockData;
         if (tBlockData) { return tBlockData; }
@@ -47,6 +49,7 @@ export const Game = () => {
     }, [ flagStatus ]);
 
     useEffect(async () => {
+        clearInterval(timerId);
         if (!reset) { return; }
 
         setReset(false);
@@ -54,6 +57,15 @@ export const Game = () => {
         setData(tData);
         setStatus(mapServerToClientStatus(tData.status));
         setFlagStatus('');
+        setTimer(0);
+        const tTimerId = setInterval(async () => {
+            const tTickData = await fnFetchTickData(tData.id);
+            setTimer(tTickData.time);
+            setStatus(mapServerToClientStatus(tTickData.gameStatus));
+		}, 250);
+        setTimerId(tTimerId);
+
+		return () => { clearInterval(tTimerId); }
     }, [ reset ]);
 
     const fnFetchData = async (pDiff) => {
@@ -86,6 +98,17 @@ export const Game = () => {
             },
             method: 'POST',
             body: JSON.stringify({ id: data.id, block: pNumber })
+        })).json();
+    };
+
+    const fnFetchTickData = async (pId) => {
+        return (await fetch('/api/update-tick', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: pId })
         })).json();
     };
 
@@ -169,7 +192,7 @@ export const Game = () => {
     
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} status={status} reset={reset} flags={data.flags} flagStatus={flagStatus}></GameHeader>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} reset={reset} flags={data.flags} flagStatus={flagStatus} timer={timer}></GameHeader>
             <Board onClick={(pNumber, pIsClickedWithControl) => handleSquareClick(pNumber, pIsClickedWithControl)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>

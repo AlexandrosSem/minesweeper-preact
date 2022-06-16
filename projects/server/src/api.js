@@ -75,6 +75,8 @@ router.get('/debug/:id', (req, res, next) => {
 
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
+    tTimeStarted = 0;
+    tTimeCurr = 0;
     const { difficulty } = req.body;
     const { toJSON } = newGame(difficulty);
     res.json(toJSON());
@@ -108,6 +110,8 @@ router.post('/open-block', (req, res, next) => {
 
     if (!ok) { return res.json(ret); }
 
+    if (tTimeStarted === 0) { tTimeStarted = new Date().getTime(); }
+
     const { index, status, type, value } = block;
     return res.json({
         ...ret,
@@ -125,6 +129,8 @@ router.post('/flag-block', (req, res, next) => {
 
     if (!ok) { return res.json(ret); }
 
+    if (tTimeStarted === 0) { tTimeStarted = new Date().getTime(); }
+
     const { index, status, type, value } = block;
     return res.json({
         ...ret,
@@ -132,14 +138,21 @@ router.post('/flag-block', (req, res, next) => {
     });
 });
 
-let xTime = 0;
+let tTimeStarted = 0;
+let tTimeCurr = 0;
 router.post('/update-tick', (req, res, next) => {
     const { id } = req.body;
     const { getStatus } = getGameById(id);
+    const tGameStatus = getStatus();
+    let tFinalTime = 0;
+    if (tTimeStarted !== 0) { tFinalTime = new Date().getTime() - tTimeStarted; }
 
+    if (tGameStatus === 'starting') { tTimeCurr = 0; } 
+    else if (tGameStatus === 'running') { tTimeCurr = tFinalTime; }
+    
     return res.json({
-        time: ++xTime,
-        gameStatus: getStatus(),
+        time: tTimeCurr,
+        gameStatus: tGameStatus,
     });
 });
 
