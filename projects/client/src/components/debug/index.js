@@ -12,6 +12,16 @@ export const Debug = ({ data, onSquareClick }) => {
         return tData;
     }
 
+    const requestBoardRefresh = async () => {
+        const tData = await (await fetch(`/api/board-refresh`, {
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify({ id: 123123123 })
+        })).json();
+
+        return tData;
+    }
+
     return (
         <div id="DEBUG" style="text-align: right;">
             <button title="WIN" onClick={async () => {
@@ -27,6 +37,11 @@ export const Debug = ({ data, onSquareClick }) => {
             <button title="DEBUG" onClick={async () => {
                 const tData = await requestDebug(1);
             }}>🐞</button>
+            |
+            <button title="Refresh board" onClick={async () => {
+                const tData = await requestBoardRefresh();
+                console.log(tData);
+            }}>R</button>
         </div>
 	);
 };

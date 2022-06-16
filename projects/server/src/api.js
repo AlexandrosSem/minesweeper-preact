@@ -71,13 +71,20 @@ router.get('/debug/:id', (req, res, next) => {
     }
 
     res.json(json);
-})
+});
 
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
     const { difficulty } = req.body;
     const { toJSON } = newGame(difficulty);
     res.json(toJSON());
+});
+
+/// Create a new game
+router.post('/has-game', (req, res, next) => {
+    const { id } = req.body;
+
+    res.json({ exists: hasGameId(id) });
 });
 
 /// Make sure we receive a game ID
@@ -123,6 +130,26 @@ router.post('/flag-block', (req, res, next) => {
         ...ret,
         blocks: [ { index, status, type, value } ],
     });
+});
+
+let xTime = 0;
+router.post('/update-tick', (req, res, next) => {
+    const { id } = req.body;
+    const { getStatus } = getGameById(id);
+
+    return res.json({
+        time: ++xTime,
+        gameStatus: getStatus(),
+    });
+});
+
+router.post('/board-refresh', (req, res, next) => {
+    const { id } = req.body;
+    const { getStatus, toJSON } = getGameById(id);
+
+    const { status, size, flags, blocks } = toJSON();
+
+    return res.json({ gameStatus: status, size, time: (++xTime), blocks });
 });
 
 module.exports = router;
