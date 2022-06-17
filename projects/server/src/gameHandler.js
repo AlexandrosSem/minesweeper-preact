@@ -53,13 +53,28 @@ const getSiblingMatrix = () => [
 const newGame = difficulty => {
     const id = newId();
     const [ width, height, numBombs ] = getSizeByDifficulty(difficulty);
-    let status = gameStatus.STARTING;
+    const gameRun = Object.seal({
+        status: gameStatus.STARTING,
+        start: 0,
+        end: 0,
+    });
 
-    const getStatus = _ => status;
-    const startGame = () => { status = gameStatus.RUNNING };
-    const endGame = (isWin) => { status = isWin ? gameStatus.WON : gameStatus.LOST; };
-    const isGameRunning = () => (status === gameStatus.RUNNING);
-    const isGameDone = () => ([ gameStatus.WON, gameStatus.LOST ].includes(status));
+    const getStatus = _ => gameRun.status;
+    const getTime = _ => isGameRunning()
+        ? (new Date().getTime() - gameRun.start)
+        : isGameDone()
+            ? (gameRun.end - gameRun.start)
+            : 0;
+    const startGame = _ => void Object.assign(gameRun, {
+        start: new Date().getTime(),
+        status: gameStatus.RUNNING
+    });
+    const endGame = (isWin) => void Object.assign(gameRun, {
+        end: new Date().getTime(),
+        status: (isWin ? gameStatus.WON : gameStatus.LOST),
+    });
+    const isGameRunning = _ => (gameRun.status === gameStatus.RUNNING);
+    const isGameDone = _ => ([ gameStatus.WON, gameStatus.LOST ].includes(gameRun.status));
 
     const indexToCartesian = indexToCartesianBuilder(width);
     const cartesianToIndex = cartesianToIndexBuilder(width);
@@ -150,7 +165,8 @@ const newGame = difficulty => {
     const toJSON = _ => ({
         id,
         difficulty,
-        status,
+        status: gameRun.status,
+        time: [ gameRun.start, gameRun.end ],
         size: [ width, height ],
         flags: numBombs,
         blocks: blocks.filter(i => isBlockOpen(i)).map(i => ({ ...i })),
@@ -158,10 +174,7 @@ const newGame = difficulty => {
 
     /// TODO: Remove
     const debugJSON = _ => ({
-        id,
-        difficulty,
-        status,
-        size: [ width, height ],
+        ...toJSON(),
         blocks: blocks.map(i => ({ ...i })),
     })
 
@@ -169,6 +182,7 @@ const newGame = difficulty => {
         openBlock,
         flagBlock,
         getStatus,
+        getTime,
         toJSON,
         debugJSON,
     };

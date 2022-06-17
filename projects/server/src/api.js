@@ -75,11 +75,12 @@ router.get('/debug/:id', (req, res, next) => {
 
 /// Create a new game
 router.post('/new-game', (req, res, next) => {
-    tTimeStarted = 0;
-    tTimeCurr = 0;
     const { difficulty } = req.body;
-    const { toJSON } = newGame(difficulty);
-    res.json(toJSON());
+
+    const { getStatus, getTime, toJSON } = newGame(difficulty);
+    const { id, size, flags, blocks } = toJSON();
+
+    return res.json({ id, gameStatus: getStatus(), size, flags, time: getTime(), blocks, difficulty });
 });
 
 /// Create a new game
@@ -100,17 +101,24 @@ router.use((req, res, next) => {
     next();
 });
 
+router.post('/board-refresh', (req, res, next) => {
+    const { id } = req.body;
+
+    const { getStatus, getTime, toJSON } = getGameById(id);
+    const { size, flags, blocks, difficulty } = toJSON();
+
+    return res.json({ id, gameStatus: getStatus(), size, flags, time: getTime(), blocks, difficulty });
+});
+
 /// Open a block
 router.post('/open-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
-    const { openBlock, getStatus } = getGameById(id);
 
+    const { openBlock, getStatus } = getGameById(id);
     const [ ok, block = {} ] = openBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
-
-    if (tTimeStarted === 0) { tTimeStarted = new Date().getTime(); }
 
     const { index, status, type, value } = block;
     return res.json({
@@ -122,14 +130,12 @@ router.post('/open-block', (req, res, next) => {
 /// flag a block
 router.post('/flag-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
-    const { flagBlock, getStatus } = getGameById(id);
 
+    const { flagBlock, getStatus } = getGameById(id);
     const [ ok, block ] = {} = flagBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
-
-    if (tTimeStarted === 0) { tTimeStarted = new Date().getTime(); }
 
     const { index, status, type, value } = block;
     return res.json({
@@ -138,31 +144,15 @@ router.post('/flag-block', (req, res, next) => {
     });
 });
 
-let tTimeStarted = 0;
-let tTimeCurr = 0;
 router.post('/update-tick', (req, res, next) => {
     const { id } = req.body;
-    const { getStatus } = getGameById(id);
-    const tGameStatus = getStatus();
-    let tFinalTime = 0;
-    if (tTimeStarted !== 0) { tFinalTime = new Date().getTime() - tTimeStarted; }
 
-    if (tGameStatus === 'starting') { tTimeCurr = 0; } 
-    else if (tGameStatus === 'running') { tTimeCurr = tFinalTime; }
-    
+    const { getStatus, getTime } = getGameById(id);
+
     return res.json({
-        time: tTimeCurr,
-        gameStatus: tGameStatus,
+        time: getTime(),
+        gameStatus: getStatus(),
     });
-});
-
-router.post('/board-refresh', (req, res, next) => {
-    const { id } = req.body;
-    const { getStatus, toJSON } = getGameById(id);
-
-    const { status, size, flags, blocks } = toJSON();
-
-    return res.json({ gameStatus: status, size, time: (++xTime), blocks });
 });
 
 module.exports = router;

@@ -55,7 +55,7 @@ export const Game = () => {
         setReset(false);
         const tData = await fnFetchData(diff);
         setData(tData);
-        setStatus(mapServerToClientStatus(tData.status));
+        setStatus(mapServerToClientStatus(tData.gameStatus));
         setFlagStatus('');
         setTimer(0);
         const tTimerId = setInterval(async () => {
