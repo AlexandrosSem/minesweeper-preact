@@ -124,8 +124,8 @@ const newGame = difficulty => {
         };
     };
 
-    const isBlockOpen = block => (block.isOpen === true);
-    const isBlockFlag = block => (block.isFlag === true);
+    const isBlockOpen = ({ isOpen }) => (isOpen === true);
+    const isBlockFlag = ({ isFlag }) => (isFlag === true);
 
     const openBlock = checkBlockBoundary(block => {
         if (isGameDone()) { return [ false ]; }
@@ -138,6 +138,20 @@ const newGame = difficulty => {
         const status = blockStatus.OPEN;
 
         Object.assign(block, { isOpen: true });
+
+        const siblings = [];
+        if (type === blockType.BLANK) {
+            const _siblings = getSiblings(block)
+                .filter(block => (block.type === blockType.BLANK) && !isBlockOpen(block) && !isBlockFlag(block));
+
+            for (const sibling of _siblings) {
+                const [ ok, _, deepSiblings ] = openBlock(sibling.index);
+                if (!ok) { continue; }
+
+                siblings.push(sibling, ...deepSiblings);
+            }
+        }
+
         /// Check for win / lose conditions
         if (type === blockType.BOMB) {
             endGame(false);
@@ -145,7 +159,7 @@ const newGame = difficulty => {
             endGame(true);
         }
 
-        return [ true, { index, status, type, value } ];
+        return [ true, { index, status, type, value }, siblings ];
     });
 
     const flagBlock = checkBlockBoundary(block => {
@@ -158,8 +172,9 @@ const newGame = difficulty => {
         const status = isFlag ? blockStatus.FLAG : blockStatus.CLOSED;
 
         Object.assign(block, { isFlag });
+        const siblings = [];
 
-        return [ true, { index, status, type: null, value: null } ];
+        return [ true, { index, status, type: null, value: null }, siblings ];
     });
 
     const toJSON = _ => ({

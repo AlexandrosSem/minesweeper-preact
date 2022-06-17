@@ -137,6 +137,9 @@ export const Game = () => {
 
         const tData = await fnFetchOpenBlockData(pNumber);
 
+        /// TODO: For some reason this is not openning all blocks
+        console.log(tData.blocks);
+
         tData.blocks.forEach(pItem => {
             dispatchBlockData({
                 index: pItem.index,
@@ -177,7 +180,7 @@ export const Game = () => {
         const tBlock = blockData.find(pItem => pItem.number === pNumber);
         const tBlockStatus = tBlock.status;
         if (tBlockStatus === 'open') { return; }
-        
+
         const tIsFlagged = (tBlockStatus === 'flag');
         const tIsNormalClick = !pIsClickedWithControl;
 

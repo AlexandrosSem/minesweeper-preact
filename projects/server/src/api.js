@@ -115,7 +115,7 @@ router.post('/open-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
 
     const { openBlock, getStatus } = getGameById(id);
-    const [ ok, block = {} ] = openBlock(blockNumber);
+    const [ ok, block, siblings ] = openBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
@@ -123,7 +123,10 @@ router.post('/open-block', (req, res, next) => {
     const { index, status, type, value } = block;
     return res.json({
         ...ret,
-        blocks: [ { index, status, type, value } ],
+        blocks: [
+            { index, status, type, value },
+            ...siblings,
+        ],
     });
 });
 
@@ -132,7 +135,7 @@ router.post('/flag-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
 
     const { flagBlock, getStatus } = getGameById(id);
-    const [ ok, block ] = {} = flagBlock(blockNumber);
+    const [ ok, block, siblings ] = {} = flagBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
     if (!ok) { return res.json(ret); }
@@ -140,7 +143,10 @@ router.post('/flag-block', (req, res, next) => {
     const { index, status, type, value } = block;
     return res.json({
         ...ret,
-        blocks: [ { index, status, type, value } ],
+        blocks: [
+            { index, status, type, value },
+            ...siblings,
+        ],
     });
 });
 
