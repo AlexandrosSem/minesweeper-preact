@@ -78,9 +78,9 @@ router.post('/new-game', (req, res, next) => {
     const { difficulty } = req.body;
 
     const { getStatus, getTime, toJSON } = newGame(difficulty);
-    const { id, size, flags, blocks } = toJSON();
+    const { id, size, flags } = toJSON();
 
-    return res.json({ id, gameStatus: getStatus(), size, flags, time: getTime(), blocks, difficulty });
+    return res.json({ id, gameStatus: getStatus(), size, flags, time: getTime(), blocks: [], difficulty });
 });
 
 /// Create a new game

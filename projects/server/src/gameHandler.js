@@ -185,7 +185,22 @@ const newGame = difficulty => {
         time: [ gameRun.start, gameRun.end ],
         size: [ width, height ],
         flags: numBombs,
-        blocks: blocks.filter(i => isBlockOpen(i)).map(i => ({ ...i })),
+        blocks: blocks
+            .filter(i => isBlockOpen(i) || isBlockFlag(i))
+            .map(block => {
+                const { index, isFlag, isOpen, type: _type, value: _value } = block;
+
+                const status = (isFlag)
+                    ? blockStatus.FLAG
+                    : isOpen
+                        ? blockStatus.OPEN
+                        : blockStatus.CLOSED;
+
+                const type = !isFlag ? _type : null;
+                const value = !isFlag ? _value : null;
+
+                return { index, status, type, value };
+            }),
     });
 
     /// TODO: Remove
