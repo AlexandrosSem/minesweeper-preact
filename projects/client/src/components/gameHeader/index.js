@@ -3,11 +3,11 @@ import { FlagNumber } from '../flagNumber';
 import { Reset } from '../reset';
 import { Timer } from '../timer';
 
-export const GameHeader = ({ onChangeDifficulty, reset, flags, flagStatus, timer }) => {
+export const GameHeader = ({ onChangeDifficulty, reset, flags, timer }) => {
     return (
         <div class={style.gameHeader}>
             <div class={style.gameFlagContainer}>
-                <FlagNumber reset={reset} flags={flags} flagStatus={flagStatus}></FlagNumber>
+                <FlagNumber reset={reset} flags={flags}></FlagNumber>
             </div>
             <div class={style.gameDiffContainer}>
                 <Reset key="0" title="E" difficulty="easy" onChangeDifficulty={onChangeDifficulty}></Reset>

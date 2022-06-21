@@ -27,9 +27,9 @@ export const Game = () => {
     const [ diff, setDiff ] = useState('normal');
     const [ reset, setReset ] = useState(false);
     const [ status, setStatus ] = useState('starting');
-    const [ flagStatus, setFlagStatus ] = useState('');
     const [ timer, setTimer ] = useState(0);
     const [ timerId, setTimerId ] = useState(0);
+    const [ flags, setFlags ] = useState(0);
     const [ blockData, dispatchBlockData ] = useReducer((pState, pData) => {
         const tBlockData = pData.blockData;
         if (tBlockData) { return tBlockData; }
@@ -44,20 +44,17 @@ export const Game = () => {
         setReset(true);
     }, [ diff ]);
 
-    useEffect(() => {
-        setFlagStatus('');
-    }, [ flagStatus ]);
-
     useEffect(async () => {
         if (!reset) { return; }
 
         const tGameId = +localStorage.getItem('MinesweeperId');
-        const tIsNewGame = !tGameId;
-        const tData = await getData(tGameId, diff);
-        if (tIsNewGame) { localStorage.setItem('MinesweeperId', tData.id); }
+        const tObj = await getData(tGameId, diff);
+        const tData = tObj.data;
+
+        if (tObj.setLocalStorage) { localStorage.setItem('MinesweeperId', tData.id); }
 
         console.log(tData);
-        
+
         setReset(false);
         setData(tData);
         const tSize = tData.size;
@@ -71,7 +68,8 @@ export const Game = () => {
         });
         processBlockData(tData.blocks);
         setStatus(mapServerToClientStatus(tData.gameStatus));
-        setFlagStatus('');
+        const tNumberOfFlagsOnBoard = numberOfFlagsOnBoard(tData.blocks);
+        setFlags(tData.flags - tNumberOfFlagsOnBoard);
         setTimer(0);
         clearInterval(timerId);
         const tTimerId = setInterval(async () => {
@@ -139,19 +137,27 @@ export const Game = () => {
         })).json();
     }
 
+    const numberOfFlagsOnBoard = (pData) => pData.filter(pItem => (pItem.status === 'flag')).length;
+
     const getData = async (pId, pDiff) => {
         let tData = null;
+        let tSetLocalStorage = false;
         if (pId) {
             tData = await fnFetchBoardRefresh(pId);
+            console.log(tData);
+            /// Recover the app if the id not found
+            /// We need to find a better way of course
             if (tData.authorized === false) {
                 localStorage.removeItem('MinesweeperId');
                 tData = await fnFetchData(pDiff);
+                tSetLocalStorage = true;
             }
         } else {
             tData = await fnFetchData(pDiff);
+            tSetLocalStorage = true;
         }
 
-        return tData;
+        return { data: tData, setLocalStorage: tSetLocalStorage };
     };
 
     const changeDifficulty = (pDiff) => {
@@ -196,9 +202,8 @@ export const Game = () => {
                 },
             });
 
-            if (tBlockStatus === 'closed') { setFlagStatus('increase'); }
-            else if (tBlockStatus === 'flag') { setFlagStatus('decrease'); }
-            else { setFlagStatus(''); }
+            if (tBlockStatus === 'closed') { setFlags(flags + 1); }
+            else if (tBlockStatus === 'flag') { setFlags(flags - 1); }
         });
 
         setStatus(mapServerToClientStatus(tData.gameStatus));
@@ -225,7 +230,7 @@ export const Game = () => {
     
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} reset={reset} flags={data.flags} flagStatus={flagStatus} timer={timer}></GameHeader>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} reset={reset} flags={flags} timer={timer}></GameHeader>
             <Board onClick={(pNumber, pIsClickedWithControl) => handleSquareClick(pNumber, pIsClickedWithControl)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>
