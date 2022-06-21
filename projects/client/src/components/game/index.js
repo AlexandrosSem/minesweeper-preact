@@ -47,14 +47,12 @@ export const Game = () => {
     useEffect(async () => {
         if (!reset) { return; }
 
-        const tGameId = +localStorage.getItem('MinesweeperId');
-        const tObj = await getData(tGameId, diff);
+        const tSavedId = +localStorage.getItem('MinesweeperId');
+        const tObj = await getData(tSavedId, diff);
         const tData = tObj.data;
-
-        if (tObj.setLocalStorage) { localStorage.setItem('MinesweeperId', tData.id); }
-
-        console.log(tData);
-
+        const tGameId = tData.id;
+        if (tObj.setLocalStorage) { localStorage.setItem('MinesweeperId', tGameId); }
+        
         setReset(false);
         setData(tData);
         const tSize = tData.size;
@@ -66,14 +64,13 @@ export const Game = () => {
                 value: '',
             })),
         });
-        processBlockData(tData.blocks);
-        setStatus(mapServerToClientStatus(tData.gameStatus));
+        updateBoard(tData);
         const tNumberOfFlagsOnBoard = numberOfFlagsOnBoard(tData.blocks);
         setFlags(tData.flags - tNumberOfFlagsOnBoard);
         setTimer(0);
         clearInterval(timerId);
         const tTimerId = setInterval(async () => {
-            const tTickData = await fnFetchTickData(tData.id);
+            const tTickData = await fnFetchTickData(tGameId);
             setTimer(tTickData.time);
             setStatus(mapServerToClientStatus(tTickData.gameStatus));
 		}, 250);
@@ -137,24 +134,47 @@ export const Game = () => {
         })).json();
     }
 
+    const fnFetchEndGameData = async (pId) => {
+        return (await fetch('/api/end-game', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: pId })
+        })).json();
+    };
+
+    const endGame = async (pId) => {
+        const tData = await fnFetchEndGameData(pId);
+        updateBoard(tData);
+    };
+
+    const updateBoard = (pData) => {
+        processBlockData(pData.blocks);
+        setStatus(mapServerToClientStatus(pData.gameStatus));
+    };
+
     const numberOfFlagsOnBoard = (pData) => pData.filter(pItem => (pItem.status === 'flag')).length;
 
     const getData = async (pId, pDiff) => {
         let tData = null;
         let tSetLocalStorage = false;
+        const fnFetchNewGame = () => {
+            tSetLocalStorage = true;
+            return fnFetchData(pDiff);
+        };
+
         if (pId) {
             tData = await fnFetchBoardRefresh(pId);
-            console.log(tData);
             /// Recover the app if the id not found
             /// We need to find a better way of course
             if (tData.authorized === false) {
                 localStorage.removeItem('MinesweeperId');
-                tData = await fnFetchData(pDiff);
-                tSetLocalStorage = true;
+                tData = await fnFetchNewGame();
             }
         } else {
-            tData = await fnFetchData(pDiff);
-            tSetLocalStorage = true;
+            tData = await fnFetchNewGame();
         }
 
         return { data: tData, setLocalStorage: tSetLocalStorage };
@@ -183,11 +203,7 @@ export const Game = () => {
         if (pIsFlagged) { return; }
 
         const tData = await fnFetchOpenBlockData(pNumber);
-        console.log(tData.blocks);
-
-        processBlockData(tData.blocks);
-
-        setStatus(mapServerToClientStatus(tData.gameStatus));
+        updateBoard(tData);
     };
 
     const handleSquareControlPlusClick = async (pNumber) => {

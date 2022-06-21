@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'preact/hooks';
 import style from '../cellContainer/style.css';
 
 export const Cell = ({ cellInfo, onClick}) => {
@@ -12,15 +11,10 @@ export const Cell = ({ cellInfo, onClick}) => {
 	const tValue = cellInfo.value;
 
 	let tValueToDisplay = '🔳';
-	let backgroundColor = '#e6e7e8';
-
 	if (tIsOpen) {
 		tValueToDisplay = '⬜';
 		if (tType === 'number') { tValueToDisplay = tValue; }
-		else if (tType === 'bomb') {
-			tValueToDisplay = '💥';
-			// backgroundColor = '#fc5b5b';
-		}
+		else if (tType === 'bomb') { tValueToDisplay = '💥'; }
 	} else if (tIsFlagged) {
 		tValueToDisplay = '🚩';
 	}
@@ -30,12 +24,12 @@ export const Cell = ({ cellInfo, onClick}) => {
 		[style.cellBomb]: (tIsOpen && ( tType === 'bomb' )),
 	});
 
-	const classes = _Classes.map(([ className, condition ]) => {
-		if (condition === true) { return className };
+	const tClasses = _Classes.map(([ className, condition ]) => {
+		if (condition === true) { return className; }
 		return null;
-	}).filter(i => i !== null).join(' ');
+	}).filter(pItem => (pItem !== null)).join(' ');
 
 	return (
-		<div id={`cell-${tNumber}`} class={classes} onClick={(pEvent) => fnActionClick(pEvent)}>{tValueToDisplay}</div>
+		<div id={`cell-${tNumber}`} class={tClasses} onClick={(pEvent) => fnActionClick(pEvent)}>{tValueToDisplay}</div>
 	);
 };
