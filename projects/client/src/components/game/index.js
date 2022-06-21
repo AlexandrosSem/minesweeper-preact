@@ -49,15 +49,31 @@ export const Game = () => {
     }, [ flagStatus ]);
 
     useEffect(async () => {
-        clearInterval(timerId);
         if (!reset) { return; }
 
+        const tGameId = +localStorage.getItem('MinesweeperId');
+        const tIsNewGame = !tGameId;
+        const tData = await getData(tGameId, diff);
+        if (tIsNewGame) { localStorage.setItem('MinesweeperId', tData.id); }
+
+        console.log(tData);
+        
         setReset(false);
-        const tData = await fnFetchData(diff);
         setData(tData);
+        const tSize = tData.size;
+        dispatchBlockData({
+            blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
+                number: pIndex,
+                status: 'closed',
+                type: 'blank',
+                value: '',
+            })),
+        });
+        processBlockData(tData.blocks);
         setStatus(mapServerToClientStatus(tData.gameStatus));
         setFlagStatus('');
         setTimer(0);
+        clearInterval(timerId);
         const tTimerId = setInterval(async () => {
             const tTickData = await fnFetchTickData(tData.id);
             setTimer(tTickData.time);
@@ -112,35 +128,40 @@ export const Game = () => {
         })).json();
     };
 
+    const fnFetchBoardRefresh = async (pId) => {
+        return (await fetch('/api/board-refresh', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({ id: pId })
+        })).json();
+    }
+
+    const getData = async (pId, pDiff) => {
+        let tData = null;
+        if (pId) {
+            tData = await fnFetchBoardRefresh(pId);
+            if (tData.authorized === false) {
+                localStorage.removeItem('MinesweeperId');
+                tData = await fnFetchData(pDiff);
+            }
+        } else {
+            tData = await fnFetchData(pDiff);
+        }
+
+        return tData;
+    };
+
     const changeDifficulty = (pDiff) => {
         setDiff(pDiff);
         setReset(true);
+        localStorage.removeItem('MinesweeperId');
     };
 
-    useEffect(() => {
-        if (!data) { return; }
-
-        const tSize = data.size;
-        dispatchBlockData({
-            blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
-                number: pIndex,
-                status: 'closed',
-                type: 'blank',
-                value: '',
-            })),
-        });
-    }, [ reset, data ]);
-
-
-    const handleSquareNormalClick = async (pNumber, pIsFlagged) => {
-        if (pIsFlagged) { return; }
-
-        const tData = await fnFetchOpenBlockData(pNumber);
-
-        /// TODO: For some reason this is not openning all blocks
-        console.log(tData.blocks);
-
-        tData.blocks.forEach(pItem => {
+    const processBlockData = (pData) => {
+        pData.forEach(pItem => {
             dispatchBlockData({
                 index: pItem.index,
                 options: {
@@ -150,6 +171,15 @@ export const Game = () => {
                 },
             });
         });
+    };
+
+    const handleSquareNormalClick = async (pNumber, pIsFlagged) => {
+        if (pIsFlagged) { return; }
+
+        const tData = await fnFetchOpenBlockData(pNumber);
+        console.log(tData.blocks);
+
+        processBlockData(tData.blocks);
 
         setStatus(mapServerToClientStatus(tData.gameStatus));
     };
