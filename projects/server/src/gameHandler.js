@@ -148,7 +148,8 @@ const newGame = difficulty => {
                 const [ ok, _, deepSiblings ] = openBlock(sibling.index);
                 if (!ok) { continue; }
 
-                siblings.push(sibling, ...deepSiblings);
+                const { index, type, value } = sibling;
+                siblings.push({ index, status, type, value }, ...deepSiblings);
             }
         }
 
