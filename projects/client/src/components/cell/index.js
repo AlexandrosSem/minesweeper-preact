@@ -10,15 +10,32 @@ export const Cell = ({ cellInfo, onClick}) => {
 
 	const tType = cellInfo.type;
 	const tValue = cellInfo.value;
-	let tValueToDisplay = '';
+
+	let tValueToDisplay = '🔳';
+	let backgroundColor = '#e6e7e8';
+
 	if (tIsOpen) {
+		tValueToDisplay = '⬜';
 		if (tType === 'number') { tValueToDisplay = tValue; }
-		else if (tType === 'bomb') { tValueToDisplay = 'B'; }
+		else if (tType === 'bomb') {
+			tValueToDisplay = '💥';
+			// backgroundColor = '#fc5b5b';
+		}
 	} else if (tIsFlagged) {
-		tValueToDisplay = 'F';
+		tValueToDisplay = '🚩';
 	}
 
+	const _Classes = Object.entries({
+		[style.cell]: true,
+		[style.cellBomb]: (tIsOpen && ( tType === 'bomb' )),
+	});
+
+	const classes = _Classes.map(([ className, condition ]) => {
+		if (condition === true) { return className };
+		return null;
+	}).filter(i => i !== null).join(' ');
+
 	return (
-		<div id={`cell-${tNumber}`} style={{backgroundColor: (tIsOpen) ? '#ffffff' : '#cccccc'}} class={style.cell} onClick={(pEvent) => fnActionClick(pEvent)}>{tValueToDisplay}</div>
+		<div id={`cell-${tNumber}`} class={classes} onClick={(pEvent) => fnActionClick(pEvent)}>{tValueToDisplay}</div>
 	);
 };

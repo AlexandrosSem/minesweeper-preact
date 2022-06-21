@@ -1,14 +1,21 @@
 .cellContainer {
-    height: 20px;
+    height: 30px;
 }
 
 .cellContainer .cell {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     display: inline-block;
     border-width: 0 0 1px 1px;
     border-style: solid;
     border-color: #000000;
+    text-align: center;
+    line-height: 2em;
+    background-color:#e6e7e8;
+}
+
+.cellContainer .cellBomb {
+    background-color:#e6e7e8;
 }
 
 .cellContainer .cell:last-child {
