@@ -29,3 +29,9 @@
     margin-left: 5px;
     height: 18px;
 }
+
+.gameGiveUp {
+    display: inline-block;
+    margin-top: 5px;
+    height: 18px;
+}

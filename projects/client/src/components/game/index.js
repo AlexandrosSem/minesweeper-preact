@@ -145,8 +145,10 @@ export const Game = () => {
         })).json();
     };
 
-    const endGame = async (pId) => {
-        const tData = await fnFetchEndGameData(pId);
+    const endGame = async () => {
+        const tData = await fnFetchEndGameData(data.id);
+        if (tData.authorized === false) { return; }
+        
         updateBoard(tData);
     };
 
@@ -246,7 +248,7 @@ export const Game = () => {
     
     return (
         <div class={style.game}>
-            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} reset={reset} flags={flags} timer={timer}></GameHeader>
+            <GameHeader onChangeDifficulty={(pDiff) => changeDifficulty(pDiff)} reset={reset} flags={flags} timer={timer} onClickGiveUp={() => endGame()}></GameHeader>
             <Board onClick={(pNumber, pIsClickedWithControl) => handleSquareClick(pNumber, pIsClickedWithControl)} blockData={blockData} numberOfRows={data.size[1]} numberOfCols={data.size[0]}></Board>
             <Debug data={data} onSquareClick={handleSquareClick}></Debug>
         </div>
