@@ -44,11 +44,18 @@ const getIndexBombs = (size, numBombs) => {
 }
 const indexToCartesianBuilder = width => (index) => [ index % width, Math.floor(index / width) ];
 const cartesianToIndexBuilder = width => (x, y) => (y * width) + x;
-const getSiblingMatrix = () => [
-        [-1, -1], [+0, -1], [+1, -1],
-        [-1, +0],           [+1, +0],
-        [-1, +1], [+0, +1], [+1, +1],
-    ];
+
+const siblingMatrixSquare = [
+    [-1, -1], [+0, -1], [+1, -1],
+    [-1, +0],           [+1, +0],
+    [-1, +1], [+0, +1], [+1, +1],
+];
+
+const siblingMatrixCross = [
+              [+0, -1]          ,
+    [-1, +0],           [+1, +0],
+              [+0, +1]          ,
+];
 
 const newGame = difficulty => {
     const id = newId();
@@ -79,7 +86,7 @@ const newGame = difficulty => {
     const indexToCartesian = indexToCartesianBuilder(width);
     const cartesianToIndex = cartesianToIndexBuilder(width);
 
-    const getSiblings = ({ x, y }) => getSiblingMatrix()
+    const getSiblings = ({ x, y }, siblingMask = siblingMatrixSquare) => siblingMask
         .map(([ offsetX, offsetY ]) => cartesianToIndex(x + offsetX, y + offsetY))
         .map(index => blocks[index])
         .filter(i => i !== undefined)
@@ -141,7 +148,7 @@ const newGame = difficulty => {
 
         const siblings = [];
         if (type === blockType.BLANK) {
-            const _siblings = getSiblings(block)
+            const _siblings = getSiblings(block, siblingMatrixCross)
                 .filter(block => (block.type === blockType.BLANK) && !isBlockOpen(block) && !isBlockFlag(block));
 
             for (const sibling of _siblings) {
