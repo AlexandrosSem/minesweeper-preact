@@ -1,6 +1,6 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { difficulty as enumDifficulty, gameStatus as enumGameStatus } from 'server/src/util-enum';
+import { Difficulty as enumDifficulty, GameStatus as enumGameStatus } from 'server/src/util-enum';
 import { Board } from '../board';
 import { Debug } from '../debug';
 import { useState, useEffect, useReducer } from 'preact/hooks';
@@ -17,7 +17,7 @@ const mapServerToClientStatus = pStatus => {
     const { RUNNING, WON, LOST } = enumGameStatus;
     if (pStatus === RUNNING) { return 'running'; }
     else if (pStatus === WON) { return 'won'; }
-    else if (pStatus === LOST) { return 'won'; }
+    else if (pStatus === LOST) { return 'lost'; }
 
     return 'starting';
 }

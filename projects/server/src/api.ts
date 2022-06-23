@@ -1,28 +1,33 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { hasGameId, getGameById, newGame } = require('./gameHandler');
+import express, { Request } from 'express';
+import bodyParser from 'body-parser';
+import { hasGameId, getGameById, newGame } from './gameHandler';
 
-const router = express.Router();
+export const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 
 router.get('/', (req, res, next) => res.json({ OK: true }));
 
 /// TODO: Remove
-router.get('/debug/:id', (req, res, next) => {
+router.get('/debug/:id', (req: Request<{id: number}>, res, next) => {
     const { id } = req.params;
     const { consoleLog } = req.query;
-    const log = (...args) => (consoleLog !== '0') && console.log(...args);
+    const log = (consoleLog !== '0')
+        ? (...args: Array<any>): void => { console.log(...args) }
+        : () => {};
 
     if (!hasGameId(id)) {
         return res.status(404).json({ notFound: true });
     }
 
-    const { debugJSON } = getGameById(id);
+    const game = getGameById(id);
+    if (!game) { return next(); }
+
+    const { debugJSON } = game;
     const json = debugJSON();
 
     const [ x, y ] = json.size;
-    const cartesianToIndex = (w, h) => (h * x) + w;
+    const cartesianToIndex = (w: number, h: number): number => (h * x) + w;
 
     Array.from({ length: 16 }, () => log(''));
     log(`Status: ${json.status}`);
@@ -36,7 +41,7 @@ router.get('/debug/:id', (req, res, next) => {
 
     for (let h = 0; h < y; h++) {
 
-        const lLine = [];
+        const lLine: Array<string> = [];
         for (let w = 0; w < x; w++) {
             const index = cartesianToIndex(w, h);
             const block = json.blocks[index];
@@ -47,7 +52,7 @@ router.get('/debug/:id', (req, res, next) => {
                     ? 'flag'
                     : 'closed'
 
-            const addCell = text => {
+            const addCell = (text: string): void => {
                 const [ open, close ] = _OpenClose[status];
                 lLine.push(open + text + close);
             }
@@ -61,7 +66,7 @@ router.get('/debug/:id', (req, res, next) => {
                 continue;
             }
             if (type === 'number') {
-                const getNumberFromValue = value => value;
+                const getNumberFromValue = (value: number): number => value;
                 addCell(' ' + getNumberFromValue(value));
                 continue;
             }
@@ -104,7 +109,10 @@ router.use((req, res, next) => {
 router.post('/board-refresh', (req, res, next) => {
     const { id } = req.body;
 
-    const { getStatus, getTime, toJSON } = getGameById(id);
+    const game = getGameById(id);
+    if (!game) { return next(); }
+
+    const { getStatus, getTime, toJSON } = game;
     const { size, flags, blocks, difficulty } = toJSON();
 
     return res.json({ id, gameStatus: getStatus(), size, flags, time: getTime(), blocks, difficulty });
@@ -114,7 +122,10 @@ router.post('/board-refresh', (req, res, next) => {
 router.post('/open-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
 
-    const { openBlock, getStatus } = getGameById(id);
+    const game = getGameById(id);
+    if (!game) { return next(); }
+
+    const { openBlock, getStatus } = game;
     const [ ok, block, siblings ] = openBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
@@ -134,7 +145,10 @@ router.post('/open-block', (req, res, next) => {
 router.post('/flag-block', (req, res, next) => {
     const { id, block: blockNumber } = req.body;
 
-    const { flagBlock, getStatus } = getGameById(id);
+    const game = getGameById(id);
+    if (!game) { return next(); }
+
+    const { flagBlock, getStatus } = game;
     const [ ok, block, siblings ] = {} = flagBlock(blockNumber);
     const ret = { gameStatus: getStatus(), ok, blocks: [] };
 
@@ -153,12 +167,13 @@ router.post('/flag-block', (req, res, next) => {
 router.post('/update-tick', (req, res, next) => {
     const { id } = req.body;
 
-    const { getStatus, getTime } = getGameById(id);
+    const game = getGameById(id);
+    if (!game) { return next(); }
+
+    const { getStatus, getTime } = game;
 
     return res.json({
         time: getTime(),
         gameStatus: getStatus(),
     });
 });
-
-module.exports = router;
