@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "common",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "lint": "eslint src"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
