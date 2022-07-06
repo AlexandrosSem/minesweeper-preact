@@ -12,11 +12,11 @@ const CreateWebSocket = (() => {
         pObj.isOpen = false;
         pObj.isClosed = false;
         pObj.isThereAMessage = false;
-        pObj.open = null;
-        pObj.close = null;
-        pObj.messageDefault = (pEvent) => pEvent.data;
-        pObj.message = pObj.messageDefault;
-        pObj.error = (pEvent) => { console.log(pEvent); };
+        pObj.openFunc = null;
+        pObj.closeFunc = null;
+        pObj.messageDefaultFunc = (pEvent) => pEvent.data;
+        pObj.messageFunc = pObj.messageDefaultFunc;
+        pObj.errorFunc = null;
     };
 
     const CreateWebSocket = function(pURL) {
@@ -24,7 +24,6 @@ const CreateWebSocket = (() => {
         _setPropertiesToDefault(this);
         this.URL = pURL;
     };
-    CreateWebSocket.prototype.setError = function(pFunc = (pEvent) => { console.log(pEvent); }) { this.error = pFunc; };
 
     CreateWebSocket.prototype.getData = function(pType, pData) {
         this.socket.send(encodeData({ type: pType, data: pData }));
@@ -33,54 +32,55 @@ const CreateWebSocket = (() => {
             const tIntervalId = setInterval(() => {
                 if (this.isThereAMessage) {
                     clearInterval(tIntervalId);
-                    const tData = decodeData(this.message());
+                    const tData = decodeData(this.messageFunc());
                     this.isThereAMessage = false;
-                    this.message = this.messageDefault;
+                    this.messageFunc = this.messageDefaultFunc;
                     resolve(tData);
                 }
             }, 10);
         });
     };
 
-    CreateWebSocket.prototype.close = function(pFunc = (() => {})) {
-        this.close = pFunc;
+    CreateWebSocket.prototype.close = function(pCloseFunc = (() => {})) {
+        this.closeFunc = pCloseFunc;
         this.socket.close();
         return new Promise((resolve) => {
             const tIntervalId = setInterval(async () => {
                 if (this.isClosed) {
                     clearInterval(tIntervalId);
-                    resolve(await this.close());
+                    resolve(await this.closeFunc());
                     _setPropertiesToDefault(this);
                 }
             }, 10);
         });
     };
 
-    CreateWebSocket.prototype.init = function(pFunc = (() => {})) {
-        this.open = pFunc;
+    CreateWebSocket.prototype.init = function(pOpenFunc = (() => {}), pErrorFunc = (pEvent) => { console.log(pEvent); }) {
+        this.openFunc = pOpenFunc;
+        this.errorFunc = pErrorFunc;
         this.socket = new WebSocket(this.URL);
         this.socket.addEventListener('open', (pEvent) => {
-            this.open = this.open.bind(null, pEvent);
+            this.openFunc = this.openFunc.bind(null, pEvent);
             this.isOpen = true;
         });
         this.socket.addEventListener('close', (pEvent) => {
-            this.close = this.close.bind(null, pEvent);
+            this.closeFunc = this.closeFunc.bind(null, pEvent);
             this.isClosed = true;
         });
         this.socket.addEventListener('message', (pEvent) => {
-            this.message = this.message.bind(null, pEvent);
+            this.messageFunc = this.messageFunc.bind(null, pEvent);
             this.isThereAMessage = true;
         });
         this.socket.addEventListener('error', (pEvent) => {
-            this.error(pEvent);
-            _setPropertiesToDefault(this);
+            this.errorFunc(pEvent);
+            this.close();
         });
 
         return new Promise((resolve) => {
             const tIntervalId = setInterval(async () => {
                 if (this.isOpen) {
                     clearInterval(tIntervalId);
-                    resolve(await this.open());
+                    resolve(await this.openFunc());
                 }
             }, 10);
         });
