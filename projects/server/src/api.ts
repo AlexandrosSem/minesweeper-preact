@@ -1,6 +1,7 @@
 import express, { Request } from 'express';
 import bodyParser from 'body-parser';
 import { hasGameId, getGameById, newGame } from './gameHandler';
+import { Server } from 'ws';
 
 export const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -177,3 +178,19 @@ router.post('/update-tick', (req, res, next) => {
         gameStatus: getStatus(),
     });
 });
+
+
+export const handleWSS = (wss: Server) => {
+    wss.on('connection', (ws) => {
+        console.log('Connection');
+        console.log('Size', wss.clients.size);
+
+        ws.on('message', (msg) => {
+            ws.send(msg);
+        }).on('close', () => {
+            console.log('close');
+            console.log('Size', wss.clients.size);
+        });
+
+    });
+};
