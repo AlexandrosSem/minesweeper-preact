@@ -1,5 +1,5 @@
 // Just a draft requires more work
-import { encodeData, decodeData } from 'common';
+import { encodeData, decodeData } from './PayloadManager';
 
 const CreateWebSocket = (() => {
     const _constructorCallCheck = (pInstance, pConstructor) => {
