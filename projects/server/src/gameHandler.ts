@@ -1,4 +1,4 @@
-import { Difficulty, BlockType, BlockStatus, GameStatus } from './util-enum';
+import { Difficulty, BlockType, BlockStatus, GameStatus } from 'common';
 
 export type RespBlockOpen = {
     index: number,
@@ -22,9 +22,9 @@ export type RespJSON = {
     size: [ width: number, height: number ],
     flags: number,
     blocks: Array<RespBlockOpen | RespBlockFlag>,
-}
+};
 
-export type RespAction<T> = [ false ] | [ boolean, T, Array<T> ];
+export type RespAction<T> = [ false ] | [ true, T, Array<T> ];
 export type RespGame = {
     openBlock: (index: number) => RespAction<RespBlockOpen>,
     flagBlock: (index: number) => RespAction<RespBlockFlag>,
@@ -32,7 +32,7 @@ export type RespGame = {
     getTime: () => number,
     toJSON: () => RespJSON,
     debugJSON: () => Omit<RespJSON, 'blocks'> & { blocks: Array<GameBlock> },
-}
+};
 
 type GameBlock = {
     index: number,
@@ -68,6 +68,7 @@ const getSizeByDifficulty = (diff: Difficulty): [ width: number, height: number,
             break;
     }
 };
+
 const getIndexBombs = (size: number, numBombs: number): Array<number> => {
     const getRandomInt = () => Math.floor(Math.random() * size);
     const _newIndex = function*() {
@@ -84,7 +85,7 @@ const getIndexBombs = (size: number, numBombs: number): Array<number> => {
     const newIndex = _newIndex();
     const getNewIndex = () => newIndex.next().value;
     return Array.from({ length: numBombs }, getNewIndex);
-}
+};
 
 const indexToCartesianBuilder = (width: number) => (index: number): [ x: number, y: number ] => [ index % width, Math.floor(index / width) ];
 const cartesianToIndexBuilder = (width: number) => (x: number, y: number) => (y * width) + x;
@@ -165,7 +166,7 @@ export const newGame = (difficulty: Difficulty) => {
             : 0;
     const startGame = () => void Object.assign(gameRun, {
         start: new Date().getTime(),
-        status: GameStatus.RUNNING
+        status: GameStatus.RUNNING,
     });
     const endGame = (isWin: boolean) => void Object.assign(gameRun, {
         end: new Date().getTime(),

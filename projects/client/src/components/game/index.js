@@ -1,6 +1,6 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { Difficulty as enumDifficulty, GameStatus as enumGameStatus } from 'server/src/util-enum';
+import { Difficulty as enumDifficulty, GameStatus as enumGameStatus } from 'common';
 import { Board } from '../board';
 import { Debug } from '../debug';
 import { useState, useEffect, useReducer } from 'preact/hooks';
@@ -22,7 +22,7 @@ const mapServerToClientStatus = pStatus => {
     else if (pStatus === LOST) { return 'lost'; }
 
     return 'starting';
-}
+};
 
 export const Game = () => {
     const [ data, setData ] = useState(null);
