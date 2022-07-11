@@ -1,93 +1,91 @@
 // Just a draft requires more work
-import { encodeData, decodeData } from './PayloadManager';
+import { encodeData, decodeData, ActionType, ActionData, ActionPayload } from './PayloadManager';
+import { Defer } from './Defer';
 
-const defaultFunc = ({ data }) => data;
-export const CreateWebSocket = function(pURL) {
-    if (!(this instanceof CreateWebSocket)) { throw new Error("Call the constructor with 'new' keyword"); }
-
-    Object.assign(this, {
-        URL: pURL,
-        socket: null,
-        isOpen: false,
-        isClosed: false,
-        isThereAMessage: false,
-        openFunc: null,
-        closeFunc: null,
-        messageFunc: defaultFunc,
-        errorFunc: null,
-    });
+enum State {
+    Pending,
+    Open,
+    Closed,
 };
 
-Object.assign(CreateWebSocket.prototype, {
-    getData: function(pType, pData) {
-        this.socket.send(encodeData({ type: pType, data: pData }));
+export class WebSocketManager {
+    URL: string;
+    socket: WebSocket;
+    state: State;
+    deferOpen: Defer<Event>;
+    deferClose: Defer<Event>;
+    deferMessageId: number;
+    deferMessage: Array<{ id: number, defer: Defer<ActionPayload> }>;
 
-        return new Promise((resolve) => {
-            const tIntervalId = setInterval(() => {
-                if (this.isThereAMessage) {
-                    clearInterval(tIntervalId);
-                    const tData = decodeData(this.messageFunc());
-                    this.isThereAMessage = false;
-                    this.messageFunc = defaultFunc;
-                    resolve(tData);
-                }
-            }, 10);
-        });
-    },
-    close: function(pCloseFunc = (() => {})) {
-        this.closeFunc = pCloseFunc;
-        this.socket.close();
-        return new Promise((resolve) => {
-            const tIntervalId = setInterval(async () => {
-                if (this.isClosed) {
-                    clearInterval(tIntervalId);
-                    resolve(await this.closeFunc());
-                }
-            }, 10);
-        });
-    },
-    init: function(pOpenFunc = (() => {}), pErrorFunc = (pEvent) => { console.log(pEvent); }) {
-        this.openFunc = pOpenFunc;
-        this.errorFunc = pErrorFunc;
-        this.socket = new WebSocket(this.URL);
+    constructor(pURL: string) {
+        this.URL = pURL;
+        this.state = State.Pending;
+        this.deferOpen = new Defer<Event>();
+        this.deferClose = new Defer<Event>();
+        this.deferMessageId = 0;
+        this.deferMessage = [];
 
-        this.socket.addEventListener('open', (pEvent) => {
-            this.openFunc = this.openFunc.bind(null, pEvent);
-            this.isOpen = true;
+        const socket = this.socket = new WebSocket(pURL);
+        socket.addEventListener('open', (pEvent) => {
+            this.state = State.Open;
+            this.deferOpen.resolve(pEvent);
         });
 
-        this.socket.addEventListener('close', (pEvent) => {
-            this.URL = '';
-            this.socket = null;
-            this.isOpen = false;
-            this.isClosed = false;
-            this.isThereAMessage = false;
-            this.openFunc = null;
-            this.closeFunc = null;
-            this.messageFunc = defaultFunc;
-            this.errorFunc = null;
-
-            this.closeFunc = this.closeFunc.bind(null, pEvent);
-            this.isClosed = true;
+        socket.addEventListener('close', (pEvent) => {
+            this.state = State.Closed;
+            this.deferClose.resolve(pEvent);
         });
 
-        this.socket.addEventListener('message', (pEvent) => {
-            this.messageFunc = this.messageFunc.bind(null, pEvent);
-            this.isThereAMessage = true;
-        });
-
-        this.socket.addEventListener('error', (pEvent) => {
-            this.errorFunc(pEvent);
+        socket.addEventListener('error', (pEvent) => {
+            this.deferOpen.reject(pEvent);
+            this.deferClose.reject(pEvent);
             this.close();
         });
 
-        return new Promise((resolve) => {
-            const tIntervalId = setInterval(async () => {
-                if (this.isOpen) {
-                    clearInterval(tIntervalId);
-                    resolve(await this.openFunc());
-                }
-            }, 10);
+        socket.addEventListener('message', (pEvent) => {
+            const messageData = decodeData(pEvent.data);
+
+            const deferMessage = this.deferMessage.find(({ id }) => id === messageData.id);
+            if (deferMessage) {
+                deferMessage.defer.resolve(messageData);
+                this.deferMessage = this.deferMessage.filter(i => i !== deferMessage);
+            } else {
+                throw new Error('Unexpected message: ' + JSON.stringify(pEvent.data, null, 2));
+            }
         });
-    },
-});
+    };
+
+    async onOpen() {
+        return this.deferOpen.promise;
+    };
+
+    async onClose() {
+        return this.deferClose.promise;
+    };
+
+    async ready() {
+        if (this.state !== State.Open) {}
+
+        return this.onOpen();
+    };
+
+    async close(code?: number, reason?: string) {
+        if (this.state !== State.Closed) {
+            this.socket.close(code, reason);
+        }
+
+        return this.onClose();
+    };
+
+    /// TODO: better name this
+    async getData(type: ActionType, data: ActionData) {
+        const defer = new Defer<ActionPayload>();
+        const id = this.deferMessageId++;
+        this.deferMessage.push({ id, defer });
+
+        const sendData = encodeData({ id, type, data });
+        this.socket.send(sendData);
+
+        return defer.promise;
+    };
+}

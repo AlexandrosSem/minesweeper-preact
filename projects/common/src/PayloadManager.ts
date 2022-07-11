@@ -1,5 +1,3 @@
-type Data = object | string | number;
-
 export enum ActionType {
     NEW_GAME = 'new-game',
     OPEN_BLOCK = 'open-block',
@@ -9,12 +7,15 @@ export enum ActionType {
     END_GAME = 'end-game',
 };
 
+export type ActionData = object | string | number;
+
 export type ActionPayload = {
+    id: number;
     type: ActionType;
-    data: Data;
+    data: ActionData;
 };
 
-const checkIfDataIsValid = (pData: Data): boolean => {
+const checkIfDataIsValid = (pData: ActionData): boolean => {
     if (Number.isFinite(pData)) { return true; }
     if (typeof pData === 'string') { return true; }
     if ((typeof pData === 'object') && (pData !== null) && (!Array.isArray(pData))) { return true; }
@@ -24,17 +25,17 @@ const checkIfDataIsValid = (pData: Data): boolean => {
 
 const checkIfTypeIsValid = (pType: ActionType): boolean => Object.values(ActionType).includes(pType);
 
-export const encodeData = ({ type, data }: ActionPayload): string => {
+export const encodeData = ({ id, type, data }: ActionPayload): string => {
     if (!checkIfTypeIsValid(type)) { throw new Error('Type is not valid'); }
     if (!checkIfDataIsValid(data)) { throw new Error('Data is not valid'); }
 
-    return JSON.stringify({ type, data });
+    return JSON.stringify({ id, type, data });
 };
 
 export const decodeData = (pString: string): ActionPayload => {
-    const { type, data }: ActionPayload = JSON.parse(pString);
+    const { id, type, data }: ActionPayload = JSON.parse(pString);
     if (!checkIfTypeIsValid(type)) { throw new Error('Type is not valid'); }
     if (!checkIfDataIsValid(data)) { throw new Error('Data is not valid'); }
 
-    return { type, data };
+    return { id, type, data };
 };
