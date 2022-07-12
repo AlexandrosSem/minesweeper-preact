@@ -76,9 +76,8 @@ export class WebSocketManager {
 
         return this.onClose();
     };
-
-    /// TODO: better name this
-    async getData(type: ActionType, data: ActionData) {
+    
+    async requestData(type: ActionType, data: ActionData) {
         const defer = new Defer<ActionPayload>();
         const id = this.deferMessageId++;
         this.deferMessage.push({ id, defer });

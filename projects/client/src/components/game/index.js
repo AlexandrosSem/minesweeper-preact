@@ -1,10 +1,9 @@
 import style from './style.css';
 import { GameHeader } from '../gameHeader';
-import { Difficulty as enumDifficulty, GameStatus as enumGameStatus } from 'common';
+import { Difficulty as enumDifficulty, GameStatus as enumGameStatus, ActionType, WebSocketManager } from 'common';
 import { Board } from '../board';
 import { Debug } from '../debug';
 import { useState, useEffect, useReducer } from 'preact/hooks';
-import { encodeData, decodeData, ActionType } from 'common';
 
 /// TODO: i need to perform tests when server have sockets
 const mapClientToServerDiff = pDiff => {
@@ -32,8 +31,7 @@ export const Game = () => {
     const [ timer, setTimer ] = useState(0);
     const [ timerId, setTimerId ] = useState(0);
     const [ flags, setFlags ] = useState(0);
-    const [ webSocket, setWebSocket ] = useState(null);
-    const [ webSocketStatus, setWebSocketStatus ] = useState(false);
+    const [ webSocketManager, setWebSocketManager ] = useState(null);
     const [ blockData, dispatchBlockData ] = useReducer((pState, pData) => {
         const tBlockData = pData.blockData;
         if (tBlockData) { return tBlockData; }
@@ -55,7 +53,7 @@ export const Game = () => {
     }, [ reset ]);
 
     useEffect(async () => {
-        if ((!reset) || (!webSocketStatus)) { return; }
+        if ((!reset) || (!webSocketManager)) { return; }
 
         const tSavedId = +localStorage.getItem('MinesweeperId');
         const tObj = await getData(tSavedId, diff);
@@ -87,7 +85,7 @@ export const Game = () => {
         setTimerId(tTimerId);
 
 		return () => { clearInterval(tTimerId); }
-    }, [ reset, webSocketStatus ]);
+    }, [ reset, webSocketManager ]);
 
     useEffect(() => {
         if (!reset) { return; }
@@ -95,121 +93,48 @@ export const Game = () => {
         setReset(false);
     }, [ reset ]);
 
-    const fnInitializeCommunication = () => {
-        if (webSocket) { return; }
+    const fnInitializeCommunication = async () => {
+        if (webSocketManager) { return; }
 
-        const tSocket = new WebSocket('ws://localhost:8080/api');
-        setWebSocket(tSocket);
-        tSocket.addEventListener('open', (_pEvent) => setWebSocketStatus(true));
-        tSocket.addEventListener('close', (_pEvent) => {
-            setWebSocketStatus(false);
-            setWebSocket(null);
-        });
-        tSocket.addEventListener('error', (pEvent) => console.log('WebSocket error:', pEvent));
-    };
-
-    const fnNormalizeDataByType = (pData, pType) => {
-        const tData = decodeData(pData);
-        if (tData.type !== pType) { return null; }
-
-        return tData.data;
-    };
-
-    const fnGetResponseData = (pData, pType, pCallBack) => {
-        const tResponse = fnNormalizeDataByType(pData, pType);
-        if (!tResponse) { return; }
-
-        pCallBack(tResponse);
+        const tWebSocketManager = new WebSocketManager('ws://localhost:8080/api');
+        await tWebSocketManager.ready();
+        setWebSocketManager(tWebSocketManager);
     };
 
     const fnFetchData = (pDiff) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.NEW_GAME;
-            const tData = { difficulty: mapClientToServerDiff(pDiff) };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.NEW_GAME;
+        const tData = { difficulty: mapClientToServerDiff(pDiff) };
+        return webSocketManager.requestData({ type: tType, data: tData });
     };
 
     const fnFetchOpenBlockData = (pNumber) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.OPEN_BLOCK;
-            const tData = { id: data.id, block: pNumber };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.OPEN_BLOCK;
+        const tData = { id: data.id, block: pNumber };
+        return webSocketManager.requestData({ type: tType, data: tData });
     };
 
     const fnFetchFlagBlockData = (pNumber) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.FLAG_BLOCK;
-            const tData = { id: data.id, block: pNumber };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.FLAG_BLOCK;
+        const tData = { id: data.id, block: pNumber };
+        return webSocketManager.requestData({ type: tType, data: tData });
     };
 
     const fnFetchTickData = (pId) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.UPDATE_TICK;
-            const tData = { id: pId };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.UPDATE_TICK;
+        const tData = { id: pId };
+        return webSocketManager.requestData({ type: tType, data: tData });
     };
 
     const fnFetchBoardRefresh = (pId) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.BOARD_REFRESH;
-            const tData = { id: pId };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.BOARD_REFRESH;
+        const tData = { id: pId };
+        return webSocketManager.requestData({ type: tType, data: tData });
     }
 
     const fnFetchEndGameData = (pId) => {
-        return new Promise((resolve) => {
-            const tType = ActionType.END_GAME;
-            const tData = { id: pId };
-            const fnMessageAction = (pEvent) => {
-                fnGetResponseData(pEvent.data, tType, (pResponse) => {
-                    webSocket.removeEventListener('message', fnMessageAction);
-                    resolve(pResponse);
-                });
-            };
-            webSocket.addEventListener('message', fnMessageAction);
-            webSocket.send(encodeData({ type: tType, data: tData }));
-        });
+        const tType = ActionType.END_GAME;
+        const tData = { id: pId };
+        return webSocketManager.requestData({ type: tType, data: tData });
     };
 
     const endGame = async () => {
