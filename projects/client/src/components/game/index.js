@@ -46,10 +46,10 @@ export const Game = () => {
         setReset(true);
     }, [ diff ]);
 
-    useEffect(() => {
-        if (!reset) { return; }
+    useEffect(async () => {
+        if ((!reset) || webSocketManager) { return; }
 
-        fnInitializeCommunication();
+        await fnInitializeCommunication();
     }, [ reset ]);
 
     useEffect(async () => {
@@ -58,11 +58,15 @@ export const Game = () => {
         const tSavedId = +localStorage.getItem('MinesweeperId');
         const tObj = await getData(tSavedId, diff);
         const tData = tObj.data;
-        const tGameId = tData.id;
-        if (tObj.setLocalStorage) { localStorage.setItem('MinesweeperId', tGameId); }
+        if (tObj.setLocalStorage) { localStorage.setItem('MinesweeperId', tData.id); }
 
         setData(tData);
-        const tSize = tData.size;
+    }, [ reset, webSocketManager ]);
+
+    useEffect(() => {
+        if (!data) { return; }
+
+        const tSize = data.size;
         dispatchBlockData({
             blockData: Array.from({ length: tSize[0] * tSize[1] }, (_, pIndex) => ({
                 number: pIndex,
@@ -71,21 +75,34 @@ export const Game = () => {
                 value: '',
             })),
         });
-        updateBoard(tData);
-        const tNumberOfFlagsOnBoard = numberOfFlagsOnBoard(tData.blocks);
-        setFlags(tData.flags - tNumberOfFlagsOnBoard);
+    }, [ data ]);
 
+    useEffect(() => {
+        if (!data) { return; }
+
+        updateBoard(data);
+    }, [ data ]);
+
+    useEffect(() => {
+        if (!data) { return; }
+
+        setFlags(data.flags - numberOfFlagsOnBoard(data.blocks));
+    }, [ data ]);
+
+    useEffect(() => {
+        if (!data) { return; }
+        
         setTimer(0);
         clearInterval(timerId);
         const tTimerId = setInterval(async () => {
-            const tTickData = await fnFetchTickData(tGameId);
+            const tTickData = await fnFetchTickData(data.id);
             setTimer(tTickData.time);
             setStatus(mapServerToClientStatus(tTickData.gameStatus));
 		}, 250);
         setTimerId(tTimerId);
 
 		return () => { clearInterval(tTimerId); }
-    }, [ reset, webSocketManager ]);
+    }, [ data ]);
 
     useEffect(() => {
         if (!reset) { return; }
@@ -94,8 +111,6 @@ export const Game = () => {
     }, [ reset ]);
 
     const fnInitializeCommunication = async () => {
-        if (webSocketManager) { return; }
-
         const tWebSocketManager = new WebSocketManager('ws://localhost:8080/api');
         await tWebSocketManager.ready();
         setWebSocketManager(tWebSocketManager);
