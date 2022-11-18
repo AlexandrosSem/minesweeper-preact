@@ -3,6 +3,8 @@ export class Defer<T> {
     reject: (pValue: T) => void;
     promise: Promise<T>;
     constructor() {
+        this.resolve = () => {};
+        this.reject = () => {};
         this.promise = new Promise<T>((res, rej) => {
             this.resolve = res;
             this.reject = rej;

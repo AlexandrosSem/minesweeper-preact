@@ -1,11 +1,19 @@
 module.exports = function (config) {
     config.devServer.proxy = [
+        // {
+        //     context: [ '/api' ],
+        //     target: 'http://localhost:8081',
+        //     pathRewrite: { '^/api': '' },
+        //     ws: true,
+        // },
         {
             // proxy requests matching a pattern:
             path: '/api/**',
 
             // where to proxy to:
             target: 'http://localhost:8081',
+
+            ws: true,
 
             // optionally change Origin: and Host: headers to match target:
             changeOrigin: true,

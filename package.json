@@ -9,7 +9,7 @@
     "dev": "concurrently -k npm:dev:*"
   },
   "dependencies": {
-    "concurrently": "^7.2.2"
+    "concurrently": "^7.5.0"
   },
   "workspaces": [ "projects/*" ]
 }
